@@ -307,12 +307,9 @@ function BrazilMap() {
     <div className="brazil-map-container">
       {/* Sidebar */}
       <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h2>Menu</h2>
-          <button className="sidebar-close" onClick={toggleSidebar}>
-            ✕
-          </button>
-        </div>
+        <button className="sidebar-back-button" onClick={toggleSidebar} title="Close Menu">
+          ←
+        </button>
         <div className="sidebar-tabs">
           <button
             className={`sidebar-tab ${activeTab === 'coffee-map' ? 'active' : ''}`}
