@@ -1,0 +1,375 @@
+.brazil-map-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6;
+  position: relative;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  left: -320px;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sidebar-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.sidebar-close:hover {
+  opacity: 0.8;
+}
+
+.sidebar-tabs {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.sidebar-tab {
+  background: transparent;
+  border: none;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar-tab:hover {
+  background: #f3f4f6;
+  color: #2563eb;
+}
+
+.sidebar-tab.active {
+  background: #eff6ff;
+  color: #2563eb;
+  border-left-color: #2563eb;
+  font-weight: 600;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+  transition: opacity 0.3s ease;
+}
+
+/* Menu Button */
+.menu-button {
+  position: absolute;
+  left: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+}
+
+.menu-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.map-header {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  color: white;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  left: 5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-2px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.header-icon {
+  font-size: 2rem;
+}
+
+.map-header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.map-header p {
+  font-size: 0.875rem;
+  color: #93c5fd;
+  margin: 0;
+}
+
+.city-info-header {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.city-info-content h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+  color: white;
+}
+
+.city-info-content p {
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+  color: #dbeafe;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+/* Custom Zoom Controls */
+.custom-zoom-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.zoom-button {
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  background: white;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #2563eb;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.zoom-button:last-child {
+  border-bottom: none;
+}
+
+.zoom-button:hover {
+  background-color: #eff6ff;
+}
+
+/* Info Panel */
+.info-panel {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  max-width: 20rem;
+  z-index: 1000;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.info-icon {
+  font-size: 1.25rem;
+}
+
+.info-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.info-content p {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0.5rem 0;
+}
+
+.selected-city {
+  color: #2563eb !important;
+}
+
+.loading-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.info-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+/* City Popup Styles */
+.city-popup {
+  text-align: center;
+}
+
+.city-name {
+  font-size: 1rem;
+  color: #1e40af;
+}
+
+.city-population {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.city-hint {
+  margin: 0.25rem 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+    left: -280px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .menu-button {
+    position: static;
+    margin-bottom: 0.5rem;
+  }
+
+  .back-button {
+    position: static;
+    width: 100%;
+    left: auto;
+  }
+  
+  .city-info-header {
+    position: static;
+    width: 100%;
+  }
+  
+  .header-left {
+    justify-content: flex-start;
+  }
+
+  .info-panel {
+    max-width: calc(100% - 2rem);
+  }
+}
