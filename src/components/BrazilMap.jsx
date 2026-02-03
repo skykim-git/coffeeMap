@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/BrazilMap.css';
+
+// Import brew data
+import { brewRecords } from '../data/brewData';
 
 // Coffee regions data with sub-regions and search terms
 const coffeeRegions = [
@@ -29,7 +32,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 4,
-        type: 'farm'
+        type: 'farm',
+        beanName: 'Guatemala La Bella Pacamara Natural'
       }
     ]
   },
@@ -57,7 +61,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 4,
-        type: 'micro-region'
+        type: 'micro-region',
+        beanName: 'Ethiopia Sidama Bensa Odako G1 Natural'
       },
       {
         id: 'bensa-hamasho',
@@ -71,7 +76,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 2,
-        type: 'micro-region'
+        type: 'micro-region',
+        beanName: 'Ethiopia Sidama Bensa Hamasho G1 Washed'
       }
     ]
   },
@@ -98,7 +104,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 1,
-        type: 'farm'
+        type: 'farm',
+        beanName: 'Colombia El Diviso Chiroso Natural'
       },
       {
         id: 'finca-la-roma',
@@ -111,7 +118,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 1,
-        type: 'farm'
+        type: 'farm',
+        beanName: 'Colombia Finca La Roma Pink Champagne Co-fermentation'
       }
     ]
   },
@@ -138,7 +146,8 @@ const coffeeRegions = [
         coordinates: null,
         boundary: null,
         brewCount: 1,
-        type: 'farm'
+        type: 'farm',
+        beanName: 'Costa Rica San Isidro Labrador Geisha Anaerobic Natural'
       }
     ]
   }
@@ -158,6 +167,291 @@ const brewStats = {
     start: '2026-01-20',
     end: '2026-02-02'
   }
+};
+
+// Words to exclude from flavor notes
+const stopWords = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
+  'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+  'should', 'may', 'might', 'must', 'can', 'it', 'its', 'this', 'that',
+  'these', 'those', 'i', 'you', 'he', 'she', 'we', 'they', 'what', 'which',
+  'who', 'when', 'where', 'why', 'how', 'not', 'no', 'yes', 'if', 'than',
+  'so', 'very', 'just', 'too', 'quite', 'more', 'less', 'some', 'any',
+  'all', 'each', 'every', 'both', 'few', 'many', 'much', 'seem', 'seemed',
+  'seems', 'hard', 'sure', 'confirmed', 'really', 'slightly', 'bit', 'good',
+  'better', 'brewing', 'brewed', 'coffee', 'cup', 'itself', 'first', 'noticeable',
+  'compared', 'clear', 'strong', 'prominent', 'identify', 'texture', 'sip'
+]);
+
+// Helper function to extract flavor notes from brew data
+const extractFlavorNotes = (beanName) => {
+  const brews = brewRecords.filter(brew => brew.beans === beanName);
+  
+  if (brews.length === 0) return [];
+  
+  // Combine all notes
+  const allNotes = brews
+    .map(brew => brew.notes)
+    .filter(note => note && note !== '?' && note.trim() !== '')
+    .join(' ');
+  
+  if (!allNotes) return [];
+  
+  // Extract words and count frequency
+  const words = allNotes
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ') // Remove punctuation
+    .split(/\s+/)
+    .filter(word => 
+      word.length > 2 && // At least 3 characters
+      !stopWords.has(word) &&
+      !/^\d+$/.test(word) // Not a number
+    );
+  
+  const wordCounts = {};
+  words.forEach(word => {
+    wordCounts[word] = (wordCounts[word] || 0) + 1;
+  });
+  
+  // Sort by frequency and take top 3
+  const topWords = Object.entries(wordCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1));
+  
+  return topWords;
+};
+
+// Helper function to get brew statistics for a subregion
+const getBrewStats = (beanName) => {
+  const brews = brewRecords.filter(brew => brew.beans === beanName);
+  
+  if (brews.length === 0) return null;
+  
+  // Temperature distribution
+  const temps = brews
+    .map(b => b.waterTemp)
+    .filter(t => t !== '?' && t !== '' && t !== null && t !== undefined);
+  
+  const tempCounts = temps.reduce((acc, temp) => {
+    acc[temp] = (acc[temp] || 0) + 1;
+    return acc;
+  }, {});
+  
+  // Grind setting distribution
+  const grinds = brews
+    .map(b => b.grindSetting)
+    .filter(g => g !== '?' && g !== '' && g !== null && g !== undefined);
+  
+  const grindCounts = grinds.reduce((acc, grind) => {
+    acc[grind] = (acc[grind] || 0) + 1;
+    return acc;
+  }, {});
+  
+  // Method distribution
+  const methods = brews
+    .map(b => b.method)
+    .filter(m => m !== '?' && m !== '' && m !== null && m !== undefined);
+  
+  const methodCounts = methods.reduce((acc, method) => {
+    acc[method] = (acc[method] || 0) + 1;
+    return acc;
+  }, {});
+  
+  // Water amount distribution
+  const waterAmounts = brews
+    .map(b => b.waterIn)
+    .filter(w => w !== '?' && w !== '' && w !== null && w !== undefined);
+  
+  const waterCounts = waterAmounts.reduce((acc, water) => {
+    acc[water] = (acc[water] || 0) + 1;
+    return acc;
+  }, {});
+  
+  return {
+    temperature: tempCounts,
+    grindSetting: grindCounts,
+    method: methodCounts,
+    waterAmount: waterCounts,
+    totalBrews: brews.length
+  };
+};
+
+// Component to render a mini histogram
+const MiniHistogram = ({ data, label, unit = '' }) => {
+  if (!data || Object.keys(data).length === 0) return null;
+  
+  const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+  const maxCount = Math.max(...entries.map(([_, count]) => count));
+  
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <div style={{ 
+        fontSize: '11px', 
+        fontWeight: '600', 
+        marginBottom: '6px',
+        color: '#654321',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {entries.map(([value, count]) => {
+          const percentage = (count / maxCount) * 100;
+          return (
+            <div key={value} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ 
+                minWidth: '45px', 
+                fontSize: '12px', 
+                fontWeight: '500',
+                color: '#333'
+              }}>
+                {value}{unit}
+              </div>
+              <div style={{ 
+                flex: 1, 
+                height: '20px', 
+                backgroundColor: '#f5f5f5',
+                borderRadius: '3px',
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
+                <div style={{
+                  width: `${percentage}%`,
+                  height: '100%',
+                  backgroundColor: '#8b4513',
+                  transition: 'width 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  paddingRight: '6px'
+                }}>
+                  <span style={{ 
+                    fontSize: '11px', 
+                    fontWeight: '600',
+                    color: 'white'
+                  }}>
+                    {count}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced popup component with brew stats and flavor notes
+const BrewStatsPopup = ({ subRegion, parentRegion }) => {
+  const stats = getBrewStats(subRegion.beanName);
+  const flavorNotes = extractFlavorNotes(subRegion.beanName);
+  
+  return (
+    <div className="region-popup" style={{ minWidth: '280px', maxWidth: '340px' }}>
+      <div style={{ 
+        borderBottom: '2px solid #8b4513', 
+        paddingBottom: '10px',
+        marginBottom: '12px'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px', 
+          flexWrap: 'wrap',
+          marginBottom: '4px'
+        }}>
+          <div className="region-name" style={{ fontSize: '16px', fontWeight: 'bold' }}>
+            {subRegion.name}
+          </div>
+          {flavorNotes.length > 0 && (
+            <div className="flavor-tags">
+              {flavorNotes.map((note, index) => (
+                <span key={index} className={`flavor-tag ${note.toLowerCase()}`}>
+                  {note}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="region-local" style={{ fontSize: '13px', color: '#666' }}>
+          {subRegion.nameLocal}
+        </div>
+        <div style={{ 
+          fontSize: '12px', 
+          color: '#8b4513', 
+          marginTop: '6px',
+          fontWeight: '500'
+        }}>
+          {subRegion.type} • {parentRegion?.name}
+        </div>
+      </div>
+      
+      {stats ? (
+        <>
+          <div style={{ 
+            backgroundColor: '#fff9f0', 
+            padding: '8px 10px', 
+            borderRadius: '4px',
+            marginBottom: '12px',
+            border: '1px solid #f0e6d2'
+          }}>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#654321' }}>
+              Total Brews: {stats.totalBrews}
+            </div>
+          </div>
+          
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <MiniHistogram 
+              data={stats.method} 
+              label="Brew Method"
+            />
+            
+            <MiniHistogram 
+              data={stats.temperature} 
+              label="Temperature"
+              unit="°C"
+            />
+            
+            <MiniHistogram 
+              data={stats.grindSetting} 
+              label="Grind Setting"
+            />
+            
+            <MiniHistogram 
+              data={stats.waterAmount} 
+              label="Water Amount"
+              unit="g"
+            />
+          </div>
+        </>
+      ) : (
+        <div style={{ 
+          fontSize: '12px', 
+          color: '#666',
+          fontStyle: 'italic',
+          textAlign: 'center',
+          padding: '10px'
+        }}>
+          No brew data available
+        </div>
+      )}
+      
+      <div style={{ 
+        fontSize: '11px', 
+        color: '#999', 
+        marginTop: '12px',
+        paddingTop: '10px',
+        borderTop: '1px solid #eee',
+        textAlign: 'center'
+      }}>
+        Click marker to zoom in
+      </div>
+    </div>
+  );
 };
 
 // Custom component to track map events
@@ -227,6 +521,20 @@ function BoundaryFitter({ boundary, coordinates, resetView, zoomLevel = 7 }) {
   return null;
 }
 
+// Component to close all popups when triggered
+function PopupCloser({ shouldClose, onClosed }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (shouldClose) {
+      map.closePopup();
+      onClosed();
+    }
+  }, [shouldClose, map, onClosed]);
+  
+  return null;
+}
+
 // Custom icon for country-level coffee regions (larger)
 const countryIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
@@ -265,6 +573,7 @@ function BrazilMap() {
   const [resetView, setResetView] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('coffee-map');
+  const [closePopup, setClosePopup] = useState(false);
 
   const worldBounds = [
     [-60, -180],
@@ -418,8 +727,11 @@ function BrazilMap() {
     setResetView(false);
   };
 
-  // Handle back button - return to world view
+  // Handle back button - return to world view and close popup
   const handleBackToMap = () => {
+    // Close any open popups
+    setClosePopup(true);
+    
     if (selectedSubRegion) {
       // Go back to country view
       setSelectedSubRegion(null);
@@ -547,6 +859,8 @@ function BrazilMap() {
                 if (selectedRegion && subRegion.parentRegion !== selectedRegion.id) return null;
                 if (!subRegion.coordinates) return null;
                 
+                const parentRegion = coffeeRegions.find(r => r.id === subRegion.parentRegion);
+                
                 return (
                   <Marker
                     key={`marker-${subRegionId}`}
@@ -556,18 +870,8 @@ function BrazilMap() {
                       click: () => handleSubRegionClick(subRegion)
                     }}
                   >
-                    <Popup>
-                      <div className="region-popup">
-                        <div className="region-name">{subRegion.name}</div>
-                        <div className="region-local">{subRegion.nameLocal}</div>
-                        <div className="region-brews">Brews: {subRegion.brewCount}</div>
-                        <div className="region-description">
-                          Type: {subRegion.type}
-                          <br />
-                          Region: {coffeeRegions.find(r => r.id === subRegion.parentRegion)?.name}
-                        </div>
-                        <div className="region-hint">Click marker to zoom in</div>
-                      </div>
+                    <Popup maxWidth={350}>
+                      <BrewStatsPopup subRegion={subRegion} parentRegion={parentRegion} />
                     </Popup>
                   </Marker>
                 );
@@ -579,6 +883,12 @@ function BrazilMap() {
               />
               
               <ZoomControls />
+              
+              {/* Component to close popups when back button is clicked */}
+              <PopupCloser 
+                shouldClose={closePopup} 
+                onClosed={() => setClosePopup(false)}
+              />
               
               {/* Zoom to selected boundary or coordinates */}
               <BoundaryFitter 

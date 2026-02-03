@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import BrazilMap from './components/BrazilMap';
-import MetroSoulsBoss from './components/Soul';
 // import BrazilMap from './components/BrazilMapOG';
 
 function App() {
