@@ -28,8 +28,8 @@
 
 .sidebar-back-button {
   background: white;
-  border: 2px solid #2563eb;
-  color: #2563eb;
+  border: 2px solid #8b4513;
+  color: #8b4513;
   padding: 0;
   margin: 1rem;
   border-radius: 0.375rem;
@@ -45,7 +45,7 @@
 }
 
 .sidebar-back-button:hover {
-  background: #eff6ff;
+  background: #fef3e2;
   transform: translateX(-2px);
 }
 
@@ -72,13 +72,13 @@
 
 .sidebar-tab:hover {
   background: #f3f4f6;
-  color: #2563eb;
+  color: #8b4513;
 }
 
 .sidebar-tab.active {
-  background: #eff6ff;
-  color: #2563eb;
-  border-left-color: #2563eb;
+  background: #fef3e2;
+  color: #8b4513;
+  border-left-color: #8b4513;
   font-weight: 600;
 }
 
@@ -120,7 +120,7 @@
 }
 
 .map-header {
-  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  background: linear-gradient(to right, #8b4513, #6f3410);
   color: white;
   padding: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -175,7 +175,7 @@
 
 .map-header p {
   font-size: 0.875rem;
-  color: #93c5fd;
+  color: #f4d5b3;
   margin: 0;
 }
 
@@ -201,7 +201,7 @@
 .city-info-content p {
   font-size: 0.875rem;
   margin: 0.25rem 0 0 0;
-  color: #dbeafe;
+  color: #f4d5b3;
 }
 
 .map-wrapper {
@@ -231,7 +231,7 @@
   cursor: pointer;
   font-size: 1.25rem;
   font-weight: bold;
-  color: #2563eb;
+  color: #8b4513;
   transition: background-color 0.2s;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -241,7 +241,7 @@
 }
 
 .zoom-button:hover {
-  background-color: #eff6ff;
+  background-color: #fef3e2;
 }
 
 /* Info Panel */
@@ -282,7 +282,7 @@
 }
 
 .selected-city {
-  color: #2563eb !important;
+  color: #8b4513 !important;
 }
 
 .loading-text {
@@ -295,28 +295,44 @@
   font-size: 0.75rem;
   color: #6b7280;
   margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
 }
 
-/* City Popup Styles */
-.city-popup {
+/* Region Popup Styles */
+.region-popup {
   text-align: center;
+  min-width: 200px;
 }
 
-.city-name {
+.region-name {
   font-size: 1rem;
-  color: #1e40af;
+  font-weight: bold;
+  color: #8b4513;
+  margin-bottom: 0.5rem;
 }
 
-.city-population {
+.region-brews {
   margin: 0.25rem 0;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #374151;
+  font-weight: 600;
 }
 
-.city-hint {
-  margin: 0.25rem 0;
+.region-description {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 0.5rem 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.region-hint {
+  margin: 0.5rem 0 0 0;
   font-size: 0.75rem;
   color: #9ca3af;
+  font-style: italic;
 }
 
 /* Leaflet overrides */

@@ -3,8 +3,162 @@ import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap, useMapEvents }
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/BrazilMap.css';
-import ByNotes from './ByNotes';
-import RawData from './RawData';
+
+// Coffee regions data with sub-regions and search terms
+const coffeeRegions = [
+  {
+    id: 'guatemala',
+    name: 'Guatemala',
+    nameLocal: '과테말라',
+    city: 'La Bella',
+    cityLocal: '라 벨라',
+    coordinates: [15.7835, -90.2308],
+    country: 'Guatemala',
+    countryCode: 'GTM',
+    brewCount: 4,
+    description: 'Central American coffee region known for volcanic soil',
+    subRegions: [
+      {
+        id: 'labella',
+        name: 'La Bella',
+        nameLocal: '라 벨라',
+        searchTerms: {
+          city: 'La Bella',
+          country: 'Guatemala'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 4,
+        type: 'farm'
+      }
+    ]
+  },
+  {
+    id: 'ethiopia',
+    name: 'Ethiopia',
+    nameLocal: '예티오피아',
+    city: 'Sidama',
+    cityLocal: '시다마',
+    coordinates: [6.8500, 38.3000],
+    country: 'Ethiopia',
+    countryCode: 'ETH',
+    brewCount: 6,
+    description: 'Birthplace of coffee with diverse flavor profiles',
+    subRegions: [
+      {
+        id: 'bensa-odako',
+        name: 'Bensa Odako',
+        nameLocal: '벤사 오다코',
+        searchTerms: {
+          city: 'Bensa',
+          state: 'Sidama',
+          country: 'Ethiopia'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 4,
+        type: 'micro-region'
+      },
+      {
+        id: 'bensa-hamasho',
+        name: 'Bensa Hamasho',
+        nameLocal: '벤사 하마쇼',
+        searchTerms: {
+          city: 'Bensa',
+          state: 'Sidama',
+          country: 'Ethiopia'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 2,
+        type: 'micro-region'
+      }
+    ]
+  },
+  {
+    id: 'colombia',
+    name: 'Colombia',
+    nameLocal: '콜롬비아',
+    city: 'Multiple Farms',
+    cityLocal: '여러 농장',
+    coordinates: [4.7110, -74.0721],
+    country: 'Colombia',
+    countryCode: 'COL',
+    brewCount: 2,
+    description: 'South American coffee powerhouse with balanced flavors',
+    subRegions: [
+      {
+        id: 'el-diviso',
+        name: 'El Diviso',
+        nameLocal: '엘 디비소',
+        searchTerms: {
+          city: 'El Diviso',
+          country: 'Colombia'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 1,
+        type: 'farm'
+      },
+      {
+        id: 'finca-la-roma',
+        name: 'Finca La Roma',
+        nameLocal: '핀카 라 로마',
+        searchTerms: {
+          city: 'La Roma',
+          country: 'Colombia'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 1,
+        type: 'farm'
+      }
+    ]
+  },
+  {
+    id: 'costarica',
+    name: 'Costa Rica',
+    nameLocal: '코스타리카',
+    city: 'San Isidro',
+    cityLocal: '산 이시드로',
+    coordinates: [9.3333, -83.7000],
+    country: 'Costa Rica',
+    countryCode: 'CRI',
+    brewCount: 1,
+    description: 'Known for high-quality Arabica beans',
+    subRegions: [
+      {
+        id: 'labrador',
+        name: 'Labrador',
+        nameLocal: '라브라도르',
+        searchTerms: {
+          city: 'San Isidro',
+          country: 'Costa Rica'
+        },
+        coordinates: null,
+        boundary: null,
+        brewCount: 1,
+        type: 'farm'
+      }
+    ]
+  }
+];
+
+const brewStats = {
+  totalBrews: 12,
+  regionCount: 4,
+  regions: {
+    'Guatemala': 4,
+    'Ethiopia': 6,
+    'Colombia': 2,
+    'Costa Rica': 1
+  },
+  mostUsedRegion: 'Ethiopia',
+  dateRange: {
+    start: '2026-01-20',
+    end: '2026-02-02'
+  }
+};
 
 // Custom component to track map events
 function MapEventHandler({ onZoomChange, onMoveChange }) {
@@ -41,7 +195,7 @@ function ZoomControls() {
         −
       </button>
       <button
-        onClick={() => map.setView([-14.235, -51.9253], 5)}
+        onClick={() => map.setView([15, -20], 3)}
         className="zoom-button"
         title="Reset view"
       >
@@ -51,132 +205,229 @@ function ZoomControls() {
   );
 }
 
-// Component to handle zooming to city bounds
-function CityBoundsFitter({ cityBoundary, resetView }) {
+// Component to handle zooming to boundaries
+function BoundaryFitter({ boundary, coordinates, resetView, zoomLevel = 7 }) {
   const map = useMap();
 
   useEffect(() => {
-    if (cityBoundary) {
-      const geoJsonLayer = L.geoJSON(cityBoundary);
+    if (boundary) {
+      const geoJsonLayer = L.geoJSON(boundary);
       const bounds = geoJsonLayer.getBounds();
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [0, 0], maxZoom: 15 });
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: zoomLevel });
       }
+    } else if (coordinates) {
+      // Zoom to specific coordinates
+      map.setView(coordinates, zoomLevel);
     } else if (resetView) {
-      // Reset to Brazil view
-      map.setView([-14.235, -51.9253], 5);
+      map.setView([15, -20], 3);
     }
-  }, [cityBoundary, resetView, map]);
+  }, [boundary, coordinates, resetView, zoomLevel, map]);
 
   return null;
 }
 
-// Major Brazilian cities
-const brazilianCities = [
-  { name: 'São Paulo', coordinates: [-23.5505, -46.6333], population: '12.3M' },
-  { name: 'Rio de Janeiro', coordinates: [-22.9068, -43.1729], population: '6.7M' },
-  { name: 'Brasília', coordinates: [-15.8267, -47.9218], population: '3.1M' },
-  { name: 'Salvador', coordinates: [-12.9714, -38.5014], population: '2.9M' },
-  { name: 'Fortaleza', coordinates: [-3.7172, -38.5433], population: '2.7M' },
-  { name: 'Belo Horizonte', coordinates: [-19.9167, -43.9345], population: '2.5M' },
-  { name: 'Manaus', coordinates: [-3.1190, -60.0217], population: '2.2M' },
-  { name: 'Curitiba', coordinates: [-25.4284, -49.2733], population: '1.9M' },
-  { name: 'Recife', coordinates: [-8.0476, -34.8770], population: '1.7M' },
-  { name: 'Porto Alegre', coordinates: [-30.0346, -51.2177], population: '1.5M' }
-];
-
-// Custom icon for cities
-const cityIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="8" fill="#2563eb" stroke="white" stroke-width="2"/>
-      <circle cx="12" cy="12" r="3" fill="white"/>
+// Custom icon for country-level coffee regions (larger)
+const countryIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="16" fill="#8b4513" stroke="white" stroke-width="3"/>
+      <text x="20" y="27" font-size="20" text-anchor="middle" fill="white">☕</text>
     </svg>
   `),
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-  popupAnchor: [0, -12]
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+  popupAnchor: [0, -20]
+});
+
+// Custom icon for sub-regions (smaller)
+const subRegionIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="10" fill="#d2691e" stroke="white" stroke-width="2"/>
+      <circle cx="14" cy="14" r="4" fill="white"/>
+    </svg>
+  `),
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14]
 });
 
 function BrazilMap() {
-  const [currentZoom, setCurrentZoom] = useState(5);
-  const [currentCenter, setCurrentCenter] = useState({ lat: '-14.2350', lng: '-51.9253' });
-  const [brazilBoundary, setBrazilBoundary] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [cityBoundaries, setCityBoundaries] = useState({});
+  const [currentZoom, setCurrentZoom] = useState(3);
+  const [currentCenter, setCurrentCenter] = useState({ lat: '15.0000', lng: '-20.0000' });
+  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [selectedSubRegion, setSelectedSubRegion] = useState(null);
+  const [countryBoundaries, setCountryBoundaries] = useState({});
+  const [subRegionData, setSubRegionData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [loadingSubRegions, setLoadingSubRegions] = useState(false);
   const [resetView, setResetView] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('coffee-map');
 
-  // Brazil bounds
-  const brazilBounds = [
-    [5.27438888, -73.98283055],
-    [-33.75116944, -34.79314722]
+  const worldBounds = [
+    [-60, -180],
+    [75, 180]
   ];
 
-  // Fetch Brazil boundary on mount
+  // Fetch country boundaries on mount
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-      .then(response => response.json())
-      .then(data => {
-        const brazil = data.features.find(feature => 
-          feature.properties.ADMIN === 'Brazil' || feature.properties.ISO_A3 === 'BRA'
-        );
-        if (brazil) {
-          setBrazilBoundary(brazil);
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error loading Brazil boundary:', error);
-        setLoading(false);
-      });
-  }, []);
-
-  // Fetch all city boundaries on mount
-  useEffect(() => {
-    const fetchCityBoundaries = async () => {
+    const fetchCountryBoundaries = async () => {
       const boundaries = {};
       
-      for (const city of brazilianCities) {
+      console.log('🌍 Starting to fetch country boundaries...');
+      console.log('📊 Total regions to fetch:', coffeeRegions.length);
+      
+      for (const region of coffeeRegions) {
         try {
+          console.log(`🔍 Fetching boundary for ${region.name} (${region.country})...`);
+          
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city.name)}&country=Brazil&format=json&polygon_geojson=1&limit=1`
+            `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(region.country)}&format=json&polygon_geojson=1&limit=1`
           );
           const data = await response.json();
           
           if (data.length > 0 && data[0].geojson) {
-            boundaries[city.name] = {
+            boundaries[region.id] = {
               type: 'Feature',
               geometry: data[0].geojson,
-              properties: { name: city.name }
+              properties: { name: region.country }
+            };
+            console.log(`✅ Boundary found for ${region.name}`);
+          } else {
+            console.warn(`❌ No boundary data returned for ${region.name}`);
+            console.log('Response data:', data);
+          }
+          
+          // Add delay to respect API rate limits (1 request per second)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`❌ Error loading boundary for ${region.name}:`, error);
+        }
+      }
+      
+      console.log('✅ Finished fetching country boundaries. Total loaded:', Object.keys(boundaries).length);
+      setCountryBoundaries(boundaries);
+      setLoading(false);
+      
+      // Start fetching sub-regions after countries are loaded
+      fetchSubRegions();
+    };
+
+    fetchCountryBoundaries();
+  }, []);
+
+  // Fetch sub-region coordinates and boundaries
+  const fetchSubRegions = async () => {
+    setLoadingSubRegions(true);
+    const subRegions = {};
+    
+    console.log('🏙️ Starting to fetch sub-region data...');
+    
+    for (const region of coffeeRegions) {
+      if (!region.subRegions) continue;
+      
+      for (const subRegion of region.subRegions) {
+        try {
+          console.log(`🔍 Fetching ${subRegion.name} (${region.name})...`);
+          
+          // Build search query
+          const params = new URLSearchParams({
+            format: 'json',
+            polygon_geojson: 1,
+            limit: 1
+          });
+          
+          if (subRegion.searchTerms.city) {
+            params.append('city', subRegion.searchTerms.city);
+          }
+          if (subRegion.searchTerms.state) {
+            params.append('state', subRegion.searchTerms.state);
+          }
+          if (subRegion.searchTerms.country) {
+            params.append('country', subRegion.searchTerms.country);
+          }
+          
+          const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+          console.log(`   Query: ${url}`);
+          
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          if (data.length > 0) {
+            const result = data[0];
+            const coordinates = [parseFloat(result.lat), parseFloat(result.lon)];
+            
+            subRegions[subRegion.id] = {
+              ...subRegion,
+              coordinates: coordinates,
+              boundary: result.geojson ? {
+                type: 'Feature',
+                geometry: result.geojson,
+                properties: { name: subRegion.name }
+              } : null,
+              parentRegion: region.id
+            };
+            
+            console.log(`✅ Found ${subRegion.name} at [${coordinates[0]}, ${coordinates[1]}]`);
+            if (result.geojson) {
+              console.log(`   📐 Boundary also available`);
+            }
+          } else {
+            // Fallback: use parent region coordinates
+            console.warn(`⚠️ No data found for ${subRegion.name}, using parent region coordinates`);
+            subRegions[subRegion.id] = {
+              ...subRegion,
+              coordinates: region.coordinates,
+              boundary: null,
+              parentRegion: region.id
             };
           }
           
           // Add delay to respect API rate limits
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.error(`Error loading boundary for ${city.name}:`, error);
+          console.error(`❌ Error fetching ${subRegion.name}:`, error);
+          // Fallback to parent coordinates
+          subRegions[subRegion.id] = {
+            ...subRegion,
+            coordinates: region.coordinates,
+            boundary: null,
+            parentRegion: region.id
+          };
         }
       }
-      
-      setCityBoundaries(boundaries);
-    };
+    }
+    
+    console.log('✅ Finished fetching sub-regions. Total loaded:', Object.keys(subRegions).length);
+    setSubRegionData(subRegions);
+    setLoadingSubRegions(false);
+  };
 
-    fetchCityBoundaries();
-  }, []);
-
-  // Handle city marker click - zoom to city boundary
-  const handleCityClick = (city) => {
-    setSelectedCity(city);
+  // Handle region marker click - zoom to country boundary
+  const handleRegionClick = (region) => {
+    setSelectedRegion(region);
+    setSelectedSubRegion(null);
     setResetView(false);
   };
 
-  // Handle back button - return to Brazil view
+  // Handle sub-region marker click - zoom to sub-region
+  const handleSubRegionClick = (subRegion) => {
+    setSelectedSubRegion(subRegion);
+    setResetView(false);
+  };
+
+  // Handle back button - return to world view
   const handleBackToMap = () => {
-    setSelectedCity(null);
-    setResetView(true);
+    if (selectedSubRegion) {
+      // Go back to country view
+      setSelectedSubRegion(null);
+    } else {
+      // Go back to world view
+      setSelectedRegion(null);
+      setResetView(true);
+    }
   };
 
   // Toggle sidebar
@@ -184,32 +435,44 @@ function BrazilMap() {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Style for Brazil boundary
-  const brazilStyle = {
-    fillColor: 'transparent',
-    fillOpacity: 0,
-    color: '#1e40af',
-    weight: 3,
-    opacity: 0.8
-  };
-
-  // Style for city boundaries (not selected)
-  const cityStyle = {
-    fillColor: '#3b82f6',
-    fillOpacity: 0.05,
-    color: '#60a5fa',
+  // Style for country boundaries (not selected)
+  const countryStyle = {
+    fillColor: '#8b4513',
+    fillOpacity: 0.08,
+    color: '#d2691e',
     weight: 1.5,
     opacity: 0.6
   };
 
-  // Style for selected city boundary
-  const selectedCityStyle = {
-    fillColor: '#3b82f6',
-    fillOpacity: 0.2,
-    color: '#2563eb',
+  // Style for selected country boundary
+  const selectedCountryStyle = {
+    fillColor: '#8b4513',
+    fillOpacity: 0.25,
+    color: '#8b4513',
     weight: 3,
     opacity: 1
   };
+
+  // Style for sub-region boundaries
+  const subRegionStyle = {
+    fillColor: '#d2691e',
+    fillOpacity: 0.15,
+    color: '#8b4513',
+    weight: 2,
+    opacity: 0.8
+  };
+
+  // Style for selected sub-region boundary
+  const selectedSubRegionStyle = {
+    fillColor: '#d2691e',
+    fillOpacity: 0.35,
+    color: '#654321',
+    weight: 3,
+    opacity: 1
+  };
+
+  // Determine whether to show country markers or sub-region markers
+  const showSubRegions = currentZoom >= 6 || selectedRegion !== null;
 
   // Render content based on active tab
   const renderTabContent = () => {
@@ -218,11 +481,11 @@ function BrazilMap() {
         return (
           <div className="map-wrapper">
             <MapContainer
-              center={[-14.235, -51.9253]}
-              zoom={5}
-              minZoom={4}
+              center={[15, -20]}
+              zoom={3}
+              minZoom={2}
               maxZoom={18}
-              maxBounds={brazilBounds}
+              maxBounds={worldBounds}
               zoomControl={false}
               style={{ height: '100%', width: '100%' }}
             >
@@ -232,34 +495,83 @@ function BrazilMap() {
                 maxZoom={18}
               />
               
-              {/* Brazil boundary */}
-              {brazilBoundary && (
+              {/* Country boundaries for coffee regions */}
+              {Object.entries(countryBoundaries).map(([regionId, boundary]) => (
                 <GeoJSON 
-                  data={brazilBoundary} 
-                  style={brazilStyle}
-                />
-              )}
-              
-              {/* All city boundaries */}
-              {Object.entries(cityBoundaries).map(([cityName, boundary]) => (
-                <GeoJSON 
-                  key={cityName}
+                  key={regionId}
                   data={boundary} 
-                  style={selectedCity?.name === cityName ? selectedCityStyle : cityStyle}
+                  style={selectedRegion?.id === regionId ? selectedCountryStyle : countryStyle}
                 />
               ))}
               
-              {/* City markers */}
-              {brazilianCities.map((city, idx) => (
+              {/* Sub-region boundaries */}
+              {showSubRegions && Object.entries(subRegionData).map(([subRegionId, subRegion]) => {
+                // Only show sub-regions for the selected region, or all if no region is selected
+                if (selectedRegion && subRegion.parentRegion !== selectedRegion.id) return null;
+                if (!subRegion.boundary) return null;
+                
+                return (
+                  <GeoJSON
+                    key={`boundary-${subRegionId}`}
+                    data={subRegion.boundary}
+                    style={selectedSubRegion?.id === subRegionId ? selectedSubRegionStyle : subRegionStyle}
+                  />
+                );
+              })}
+              
+              {/* Show country-level markers when zoomed out */}
+              {!showSubRegions && coffeeRegions.map((region) => (
                 <Marker
-                  key={idx}
-                  position={city.coordinates}
-                  icon={cityIcon}
+                  key={region.id}
+                  position={region.coordinates}
+                  icon={countryIcon}
                   eventHandlers={{
-                    click: () => handleCityClick(city)
+                    click: () => handleRegionClick(region)
                   }}
-                />
+                >
+                  <Popup>
+                    <div className="region-popup">
+                      <div className="region-name">{region.name}</div>
+                      <div className="region-local">{region.nameLocal}</div>
+                      <div className="region-brews">Total Brews: {region.brewCount}</div>
+                      <div className="region-description">{region.description}</div>
+                      <div className="region-hint">Click to zoom in and see sub-regions</div>
+                    </div>
+                  </Popup>
+                </Marker>
               ))}
+              
+              {/* Show sub-region markers when zoomed in or region selected */}
+              {showSubRegions && Object.entries(subRegionData).map(([subRegionId, subRegion]) => {
+                // Only show sub-regions for the selected region, or all if no region is selected
+                if (selectedRegion && subRegion.parentRegion !== selectedRegion.id) return null;
+                if (!subRegion.coordinates) return null;
+                
+                return (
+                  <Marker
+                    key={`marker-${subRegionId}`}
+                    position={subRegion.coordinates}
+                    icon={subRegionIcon}
+                    eventHandlers={{
+                      click: () => handleSubRegionClick(subRegion)
+                    }}
+                  >
+                    <Popup>
+                      <div className="region-popup">
+                        <div className="region-name">{subRegion.name}</div>
+                        <div className="region-local">{subRegion.nameLocal}</div>
+                        <div className="region-brews">Brews: {subRegion.brewCount}</div>
+                        <div className="region-description">
+                          Type: {subRegion.type}
+                          <br />
+                          Region: {coffeeRegions.find(r => r.id === subRegion.parentRegion)?.name}
+                        </div>
+                        <div className="region-hint">Click marker to zoom in</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
               
               <MapEventHandler 
                 onZoomChange={setCurrentZoom}
@@ -268,36 +580,38 @@ function BrazilMap() {
               
               <ZoomControls />
               
-              {/* Zoom to selected city boundary or reset view */}
-              <CityBoundsFitter 
-                cityBoundary={selectedCity && cityBoundaries[selectedCity.name] ? cityBoundaries[selectedCity.name] : null}
+              {/* Zoom to selected boundary or coordinates */}
+              <BoundaryFitter 
+                boundary={
+                  selectedSubRegion?.boundary || 
+                  (selectedRegion && countryBoundaries[selectedRegion.id]) || 
+                  null
+                }
+                coordinates={selectedSubRegion && !selectedSubRegion.boundary ? selectedSubRegion.coordinates : null}
                 resetView={resetView}
+                zoomLevel={selectedSubRegion ? 12 : 7}
               />
             </MapContainer>
-
-            {/* Info Panel */}
-            <div className="info-panel">
-              <div className="info-header">
-                <span className="info-icon">📍</span>
-                <h3>Map Info</h3>
-              </div>
-              <div className="info-content">
-                <p><strong>Zoom Level:</strong> {currentZoom}</p>
-                <p><strong>Center:</strong> {currentCenter.lat}, {currentCenter.lng}</p>
-                {loading && (
-                  <p className="loading-text">Loading boundaries...</p>
-                )}
-                <p className="info-help">
-                  All city boundaries are visible. Click on city markers to zoom in. Blue line shows Brazil's border.
-                </p>
-              </div>
-            </div>
           </div>
         );
       case 'by-notes':
-        return <ByNotes />;
+        return (
+          <div className="map-wrapper">
+            <div style={{padding: '2rem', textAlign: 'center', color: '#666'}}>
+              <h2>By Notes</h2>
+              <p>This tab will show your brewing notes organized by categories.</p>
+            </div>
+          </div>
+        );
       case 'raw-data':
-        return <RawData />;
+        return (
+          <div className="map-wrapper">
+            <div style={{padding: '2rem', textAlign: 'center', color: '#666'}}>
+              <h2>Raw Data</h2>
+              <p>This tab will show your raw brewing data in table format.</p>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -342,21 +656,23 @@ function BrazilMap() {
             ☰
           </button>
 
-          {selectedCity && activeTab === 'coffee-map' && (
-            <button className="back-button" onClick={handleBackToMap} title="Back to Brazil Map">
+          {(selectedRegion || selectedSubRegion) && activeTab === 'coffee-map' && (
+            <button className="back-button" onClick={handleBackToMap} title="Back">
               ← Back
             </button>
           )}
           
           <div className="header-left">
-            <div className="header-icon">📍</div>
+            <div className="header-icon">☕</div>
             <div>
-              <h1>Brazil Map</h1>
+              <h1>Coffee Regions Map</h1>
               <p>
-                {activeTab === 'coffee-map' && selectedCity 
-                  ? 'Click back arrow to return to full map' 
+                {activeTab === 'coffee-map' && selectedSubRegion
+                  ? `Viewing ${selectedSubRegion.name}` 
+                  : activeTab === 'coffee-map' && selectedRegion 
+                  ? `Viewing ${selectedRegion.name} sub-regions` 
                   : activeTab === 'coffee-map'
-                  ? 'Click on cities to zoom into their boundaries'
+                  ? 'Click on countries to see farms and micro-regions'
                   : activeTab === 'by-notes'
                   ? 'View notes and annotations'
                   : 'View raw data'}
@@ -364,11 +680,20 @@ function BrazilMap() {
             </div>
           </div>
 
-          {selectedCity && activeTab === 'coffee-map' && (
+          {selectedRegion && !selectedSubRegion && activeTab === 'coffee-map' && (
             <div className="city-info-header">
               <div className="city-info-content">
-                <h2>{selectedCity.name}</h2>
-                <p>Population: {selectedCity.population}</p>
+                <h2>{selectedRegion.name}</h2>
+                <p>Brews: {selectedRegion.brewCount} | {selectedRegion.subRegions?.length || 0} sub-regions</p>
+              </div>
+            </div>
+          )}
+
+          {selectedSubRegion && activeTab === 'coffee-map' && (
+            <div className="city-info-header">
+              <div className="city-info-content">
+                <h2>{selectedSubRegion.name}</h2>
+                <p>Type: {selectedSubRegion.type} | Brews: {selectedSubRegion.brewCount}</p>
               </div>
             </div>
           )}
