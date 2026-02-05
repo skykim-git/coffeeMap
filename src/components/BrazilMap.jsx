@@ -4,6 +4,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/BrazilMap.css';
 
+// Import components
+import ByNotes from './ByNotes';
+
 // Import brew data
 import { brewRecords } from '../data/brewData';
 
@@ -907,10 +910,7 @@ function BrazilMap() {
       case 'by-notes':
         return (
           <div className="map-wrapper">
-            <div style={{padding: '2rem', textAlign: 'center', color: '#666'}}>
-              <h2>By Notes</h2>
-              <p>This tab will show your brewing notes organized by categories.</p>
-            </div>
+            <ByNotes />
           </div>
         );
       case 'raw-data':

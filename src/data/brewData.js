@@ -216,6 +216,21 @@ export const brewRecords = [
   }
 ];
 
+  // {
+  //   date: '2026-02-05',
+  //   beans: '예티오피아 뭐시기 내추럴',
+  //   region: 'Guatemala',
+  //   method: 'V60 4666',
+  //   grinder: 'C3 ESP',
+  //   grindSetting: '1.8.0',
+  //   waterTemp: 94,
+  //   waterIn: 220,
+  //   brewTime: '2:20',
+  //   daysPastRoasting: '',
+  //   notes: '',
+  //   etc: '쓴맛이 좀 밸런스 있게 있는 느낌 기존에 마시던 거랑 다른 향이 있는데 뭔지 모르겠음'
+  // }
+
 // Summary statistics
 export const brewStats = {
   totalBrews: 12,
