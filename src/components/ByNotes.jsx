@@ -87,6 +87,33 @@ const stopWords = new Set([
   'compared', 'clear', 'strong', 'prominent', 'identify', 'texture', 'sip'
 ]);
 
+// Helper function to get emoji for flavor
+const getFlavorEmoji = (flavor) => {
+  const emojiMap = {
+    'citrus': '🍊',
+    'chocolate': '🍫',
+    'fruity': '🍇',
+    'berry': '🫐',
+    'raspberry': '🫐',
+    'banana': '🍌',
+    'apple': '🍏',
+    'grape': '🍇',
+    'mango': '🥭',
+    'pineapple': '🍍',
+    'tropical': '🌴',
+    'honey': '🍯',
+    'caramel': '🍮',
+    'nutty': '🥜',
+    'floral': '🌸',
+    'aroma': '🌺',
+    'acidic': '💧',
+    'intense': '🔥',
+    'green': '🌿',
+    'describe': '📝'
+  };
+  return emojiMap[flavor.toLowerCase()] || '☕';
+};
+
 // Helper function to extract all flavor words from brew data
 const extractAllFlavorWords = () => {
   const allWords = {};
@@ -191,7 +218,7 @@ function ByNotes() {
     const query = searchQuery.toLowerCase();
     return allFlavorWords.filter(item => 
       item.word.toLowerCase().includes(query)
-    ).slice(0, 20); // Limit to 20 results
+    ).slice(0, 20);
   }, [searchQuery, allFlavorWords]);
   
   // Get subregions for selected flavor
@@ -223,34 +250,18 @@ function ByNotes() {
       <div className="by-notes-content">
         {/* Header */}
         <div className="by-notes-header">
-          <h2>📝 Browse by Flavor Notes</h2>
-          <p>Explore coffee regions by their tasting notes and flavor profiles</p>
-        </div>
-        
-        {/* Top flavor tags */}
-        <div className="top-flavors-section">
-          <div className="flavor-tags-grid">
-            {topFlavors.map((item, index) => (
-              <button
-                key={index}
-                className={`flavor-tag-button ${item.word.toLowerCase()} ${selectedFlavor === item.word ? 'active' : ''}`}
-                onClick={() => handleFlavorClick(item.word)}
-                title={`${item.count} mentions across ${item.subRegions.length} regions`}
-              >
-                {item.word}
-                <span className="flavor-count">{item.count}</span>
-              </button>
-            ))}
-          </div>
+          {/* <div className="header-icon">📝</div> */}
+          {/* <h2>Browse by Notes</h2> */}
         </div>
         
         {/* Search section */}
         <div className="search-section">
           <div className="search-input-wrapper">
+            <span className="search-icon">🔍</span>
             <input
               type="text"
               className="search-input"
-              placeholder="Search for flavor notes (e.g., fruity, floral, nutty)..."
+              placeholder="Search for notes"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -274,9 +285,12 @@ function ByNotes() {
                   className="search-result-item"
                   onClick={() => handleFlavorClick(item.word)}
                 >
-                  <span className="result-word">{item.word}</span>
+                  <div className="result-main">
+                    <span className="result-emoji">{getFlavorEmoji(item.word)}</span>
+                    <span className="result-word">{item.word}</span>
+                  </div>
                   <span className="result-stats">
-                    {item.count} mentions • {item.subRegions.length} regions
+                    {item.count} • {item.subRegions.length} regions
                   </span>
                 </button>
               ))}
@@ -292,15 +306,36 @@ function ByNotes() {
           )}
         </div>
         
+        {/* Top flavor tags */}
+        <div className="top-flavors-section">
+          <div className="section-title">Popular Flavors</div>
+          <div className="flavor-tags-grid">
+            {topFlavors.map((item, index) => (
+              <button
+                key={index}
+                className={`flavor-tag-button ${item.word.toLowerCase()} ${selectedFlavor === item.word ? 'active' : ''}`}
+                onClick={() => handleFlavorClick(item.word)}
+                title={`${item.count} mentions across ${item.subRegions.length} regions`}
+              >
+                <span className="flavor-emoji">{getFlavorEmoji(item.word)}</span>
+                <span className="flavor-text">{item.word}</span>
+                <span className="flavor-count">{item.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        
         {/* Results section */}
         {selectedFlavor && (
           <div className="results-section">
             <div className="results-header">
               <h3>
-                Regions with <span className={`flavor-highlight ${selectedFlavor.toLowerCase()}`}>{selectedFlavor}</span> notes
+                Regions with <span className={`flavor-highlight ${selectedFlavor.toLowerCase()}`}>
+                  {getFlavorEmoji(selectedFlavor)} {selectedFlavor}
+                </span> notes
               </h3>
               <span className="results-count">
-                {filteredSubRegions.length} {filteredSubRegions.length === 1 ? 'region' : 'regions'} found
+                {filteredSubRegions.length} {filteredSubRegions.length === 1 ? 'region' : 'regions'}
               </span>
             </div>
             
@@ -312,19 +347,20 @@ function ByNotes() {
                 return (
                   <div key={index} className="subregion-card">
                     <div className="subregion-card-header">
-                      <div>
+                      <div className="subregion-info">
                         <h4>{subRegion.name}</h4>
                         <p className="subregion-local">{subRegion.nameLocal}</p>
                       </div>
                       <div className="subregion-meta">
-                        <span className="meta-badge">{subRegion.parentCountry}</span>
-                        <span className="meta-badge">{subRegion.type}</span>
+                        <span className="meta-badge country">{subRegion.parentCountry}</span>
+                        <span className="meta-badge type">{subRegion.type}</span>
                       </div>
                     </div>
                     
                     <div className="subregion-card-body">
                       <div className="brew-count">
-                        ☕ {brewCount} {brewCount === 1 ? 'brew' : 'brews'}
+                        <span className="brew-icon">☕</span>
+                        <span>{brewCount} {brewCount === 1 ? 'brew' : 'brews'}</span>
                       </div>
                       
                       {allNotes.length > 0 && (
@@ -334,9 +370,10 @@ function ByNotes() {
                             {allNotes.map((note, noteIndex) => (
                               <span 
                                 key={noteIndex} 
-                                className={`flavor-tag-mini ${note.toLowerCase()} ${note.toLowerCase() === selectedFlavor.toLowerCase() ? 'highlighted' : ''}`}
+                                className={`flavor-tag ${note.toLowerCase()} ${note.toLowerCase() === selectedFlavor.toLowerCase() ? 'highlighted' : ''}`}
                               >
-                                {note}
+                                <span>{getFlavorEmoji(note)}</span>
+                                <span>{note}</span>
                               </span>
                             ))}
                           </div>
@@ -350,8 +387,9 @@ function ByNotes() {
             
             {filteredSubRegions.length === 0 && (
               <div className="no-results-message">
-                <p>No regions found with "{selectedFlavor}" notes.</p>
-                <p className="hint">Try selecting a different flavor tag above.</p>
+                <div className="no-results-icon">🤔</div>
+                <p>No regions found with "{selectedFlavor}" notes</p>
+                <p className="hint">Try selecting a different flavor above</p>
               </div>
             )}
           </div>
@@ -360,9 +398,9 @@ function ByNotes() {
         {/* Empty state */}
         {!selectedFlavor && !searchQuery && (
           <div className="empty-state">
-            <div className="empty-state-icon">🔍</div>
-            <h3>Discover Coffee by Flavor</h3>
-            <p>Click on a flavor tag above or use the search to find regions with specific tasting notes.</p>
+            {/* <div className="empty-state-icon">🔍</div>
+            <h3>Discover Coffee by Flavor</h3> */}
+            <p>You have tasted</p>
             <div className="empty-state-stats">
               <div className="stat-item">
                 <span className="stat-number">{allFlavorWords.length}</span>
@@ -374,7 +412,7 @@ function ByNotes() {
               </div>
               <div className="stat-item">
                 <span className="stat-number">{brewRecords.length}</span>
-                <span className="stat-label">Brews</span>
+                <span className="stat-label">Total Brews</span>
               </div>
             </div>
           </div>

@@ -195,106 +195,265 @@ const BrewStatsPopup = ({ subRegion, parentRegion }) => {
   const stats = getBrewStatsForSubregion(subRegion.beanName);
   const flavorNotes = extractFlavorNotes(subRegion.beanName);
   
+  // Map flavor notes to emojis
+  const getFlavorEmoji = (flavor) => {
+    const emojiMap = {
+      'citrus': '🍊',
+      'chocolate': '🍫',
+      'fruity': '🍇',
+      'berry': '🫐',
+      'raspberry': '🫐',
+      'banana': '🍌',
+      'apple': '🍏',
+      'grape': '🍇',
+      'mango': '🥭',
+      'pineapple': '🍍',
+      'tropical': '🌴',
+      'honey': '🍯',
+      'caramel': '🍮',
+      'nutty': '🥜',
+      'floral': '🌸',
+      'aroma': '🌺',
+      'acidic': '💧'
+    };
+    return emojiMap[flavor.toLowerCase()] || '☕';
+  };
+  
   return (
-    <div className="region-popup" style={{ minWidth: '280px', maxWidth: '340px' }}>
-      <div style={{ 
-        borderBottom: '2px solid #8b4513', 
-        paddingBottom: '10px',
-        marginBottom: '12px'
-      }}>
+    <div style={{ minWidth: '280px', maxWidth: '360px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+      <div style={{ marginBottom: '16px', marginTop: '20px' }}>
         <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '8px', 
-          flexWrap: 'wrap',
+          fontSize: '20px', 
+          fontWeight: '700',
+          color: '#2C1810',
           marginBottom: '4px'
         }}>
-          <div className="region-name" style={{ fontSize: '16px', fontWeight: 'bold' }}>
-            {subRegion.name}
-          </div>
-          {flavorNotes.length > 0 && (
-            <div className="flavor-tags">
-              {flavorNotes.map((note, index) => (
-                <span key={index} className={`flavor-tag ${note.toLowerCase()}`}>
-                  {note}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="region-local" style={{ fontSize: '13px', color: '#666' }}>
-          {subRegion.nameLocal}
+          {subRegion.name}
         </div>
         <div style={{ 
-          fontSize: '12px', 
-          color: '#8b4513', 
-          marginTop: '6px',
-          fontWeight: '500'
+          fontSize: '13px', 
+          color: '#8D6E63'
         }}>
-          {subRegion.type} • {parentRegion?.name}
+          {subRegion.nameLocal} • {parentRegion?.name}
         </div>
       </div>
-      
-      {stats ? (
-        <>
-          <div style={{ 
-            backgroundColor: '#fff9f0', 
-            padding: '8px 10px', 
-            borderRadius: '4px',
-            marginBottom: '12px',
-            border: '1px solid #f0e6d2'
-          }}>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#654321' }}>
-              Total Brews: {stats.totalBrews}
-            </div>
-          </div>
-          
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            <MiniHistogram 
-              data={stats.method} 
-              label="Brew Method"
-            />
-            
-            <MiniHistogram 
-              data={stats.temperature} 
-              label="Temperature"
-              unit="°C"
-            />
-            
-            <MiniHistogram 
-              data={stats.grindSetting} 
-              label="Grind Setting"
-            />
-            
-            <MiniHistogram 
-              data={stats.waterAmount} 
-              label="Water Amount"
-              unit="g"
-            />
-          </div>
-        </>
-      ) : (
+
+      {flavorNotes.length > 0 && (
         <div style={{ 
-          fontSize: '12px', 
-          color: '#666',
-          fontStyle: 'italic',
-          textAlign: 'center',
-          padding: '10px'
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: '8px', 
+          margin: '16px 0' 
         }}>
-          No brew data available
+          {flavorNotes.map((note, index) => (
+            <span 
+              key={index} 
+              style={{
+                background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+                color: '#2C1810',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>{getFlavorEmoji(note)}</span>
+              {note}
+            </span>
+          ))}
         </div>
       )}
       
-      <div style={{ 
-        fontSize: '11px', 
-        color: '#999', 
-        marginTop: '12px',
-        paddingTop: '10px',
-        borderTop: '1px solid #eee',
-        textAlign: 'center'
-      }}>
-        Click marker to zoom in
-      </div>
+      {stats && (
+        <div style={{ marginTop: '20px' }}>
+          {/* Brew Stats */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Method */}
+            {stats.method && Object.keys(stats.method).length > 0 && (
+              <div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  fontWeight: '700',
+                  color: '#8D6E63',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  marginBottom: '8px'
+                }}>
+                  Brew Method
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {Object.entries(stats.method).sort((a, b) => b[1] - a[1]).map(([value, count]) => {
+                    const maxCount = Math.max(...Object.values(stats.method));
+                    const percentage = (count / maxCount) * 100;
+                    return (
+                      <div key={value} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ 
+                          minWidth: '80px', 
+                          fontSize: '12px', 
+                          fontWeight: '600',
+                          color: '#2C1810'
+                        }}>
+                          {value}
+                        </div>
+                        <div style={{ 
+                          flex: 1, 
+                          height: '24px', 
+                          backgroundColor: '#EFEBE9',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          position: 'relative'
+                        }}>
+                          <div style={{
+                            width: `${percentage}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #5D4037 0%, #8D6E63 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            paddingRight: '8px',
+                            transition: 'width 0.5s ease'
+                          }}>
+                            <span style={{ 
+                              fontSize: '11px', 
+                              fontWeight: '700',
+                              color: 'white'
+                            }}>
+                              {count}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Temperature */}
+            {stats.temperature && Object.keys(stats.temperature).length > 0 && (
+              <div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  fontWeight: '700',
+                  color: '#8D6E63',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  marginBottom: '8px'
+                }}>
+                  Temperature
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {Object.entries(stats.temperature).sort((a, b) => b[1] - a[1]).map(([value, count]) => {
+                    const maxCount = Math.max(...Object.values(stats.temperature));
+                    const percentage = (count / maxCount) * 100;
+                    return (
+                      <div key={value} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ 
+                          minWidth: '80px', 
+                          fontSize: '12px', 
+                          fontWeight: '600',
+                          color: '#2C1810'
+                        }}>
+                          {value}°C
+                        </div>
+                        <div style={{ 
+                          flex: 1, 
+                          height: '24px', 
+                          backgroundColor: '#EFEBE9',
+                          borderRadius: '6px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${percentage}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #5D4037 0%, #8D6E63 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            paddingRight: '8px',
+                            transition: 'width 0.5s ease'
+                          }}>
+                            <span style={{ 
+                              fontSize: '11px', 
+                              fontWeight: '700',
+                              color: 'white'
+                            }}>
+                              {count}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Grind Setting */}
+            {stats.grindSetting && Object.keys(stats.grindSetting).length > 0 && (
+              <div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  fontWeight: '700',
+                  color: '#8D6E63',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  marginBottom: '8px'
+                }}>
+                  Grind Setting
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {Object.entries(stats.grindSetting).sort((a, b) => b[1] - a[1]).map(([value, count]) => {
+                    const maxCount = Math.max(...Object.values(stats.grindSetting));
+                    const percentage = (count / maxCount) * 100;
+                    return (
+                      <div key={value} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ 
+                          minWidth: '80px', 
+                          fontSize: '12px', 
+                          fontWeight: '600',
+                          color: '#2C1810'
+                        }}>
+                          {value}
+                        </div>
+                        <div style={{ 
+                          flex: 1, 
+                          height: '24px', 
+                          backgroundColor: '#EFEBE9',
+                          borderRadius: '6px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${percentage}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #5D4037 0%, #8D6E63 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            paddingRight: '8px',
+                            transition: 'width 0.5s ease'
+                          }}>
+                            <span style={{ 
+                              fontSize: '11px', 
+                              fontWeight: '700',
+                              color: 'white'
+                            }}>
+                              {count}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -319,49 +478,47 @@ function ZoomControls() {
 
   return (
     <div className="custom-zoom-controls">
-      <button
-        onClick={() => map.zoomIn()}
-        className="zoom-button"
-        title="Zoom in"
-      >
-        +
-      </button>
-      <button
-        onClick={() => map.zoomOut()}
-        className="zoom-button"
-        title="Zoom out"
-      >
-        −
-      </button>
-      <button
-        onClick={() => map.setView([15, -20], 3)}
-        className="zoom-button"
-        title="Reset view"
-      >
-        ⊡
-      </button>
+      <div className="control-group">
+        <button
+          onClick={() => map.zoomIn()}
+          className="zoom-button"
+          title="Zoom in"
+        >
+          +
+        </button>
+        <button
+          onClick={() => map.zoomOut()}
+          className="zoom-button"
+          title="Zoom out"
+        >
+          −
+        </button>
+        <button
+          onClick={() => map.setView([15, -20], 3)}
+          className="zoom-button"
+          title="Reset view"
+        >
+          ⊡
+        </button>
+      </div>
     </div>
   );
 }
 
-// Component to handle zooming to boundaries
-function BoundaryFitter({ boundary, coordinates, resetView, zoomLevel = 7 }) {
+// Component to handle zooming to coordinates
+function BoundaryFitter({ coordinates, resetView, zoomLevel = 7 }) {
   const map = useMap();
 
   useEffect(() => {
-    if (boundary) {
-      const geoJsonLayer = L.geoJSON(boundary);
-      const bounds = geoJsonLayer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: zoomLevel });
-      }
-    } else if (coordinates) {
+    if (coordinates) {
       // Zoom to specific coordinates
-      map.setView(coordinates, zoomLevel);
+      console.log('Zooming to coordinates:', coordinates, 'with zoom level:', zoomLevel);
+      map.setView(coordinates, zoomLevel, { animate: true, duration: 0.5 });
     } else if (resetView) {
-      map.setView([15, -20], 3);
+      console.log('Resetting view to world map');
+      map.setView([15, -20], 3, { animate: true, duration: 0.5 });
     }
-  }, [boundary, coordinates, resetView, zoomLevel, map]);
+  }, [coordinates, resetView, zoomLevel, map]);
 
   return null;
 }
@@ -434,8 +591,9 @@ function BrazilMap() {
     }
   });
 
-  // Handle region marker click - zoom to country boundary
+  // Handle region marker click - zoom to region and show sub-regions
   const handleRegionClick = (region) => {
+    console.log('Region clicked:', region);
     setSelectedRegion(region);
     setSelectedSubRegion(null);
     setResetView(false);
@@ -588,14 +746,13 @@ function BrazilMap() {
               
               {/* Zoom to selected coordinates */}
               <BoundaryFitter 
-                boundary={null}
                 coordinates={
                   selectedSubRegion?.coordinates || 
                   selectedRegion?.coordinates || 
                   null
                 }
                 resetView={resetView}
-                zoomLevel={selectedSubRegion ? 12 : 7}
+                zoomLevel={selectedSubRegion ? 12 : selectedRegion ? 7 : 3}
               />
             </MapContainer>
           </div>
@@ -623,88 +780,138 @@ function BrazilMap() {
   return (
     <div className="brazil-map-container">
       {/* Sidebar */}
-      <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <button className="sidebar-back-button" onClick={toggleSidebar} title="Close Menu">
-          ←
-        </button>
-        <div className="sidebar-tabs">
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="logo">
+            <div className="logo-icon">☕</div>
+            <div className="logo-text">
+              <h1>Coffee Journey</h1>
+              <p>Taste Map</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-number">{brewStats.totalBrews}</div>
+            <div className="stat-label">Total Brews</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{brewStats.regionCount}</div>
+            <div className="stat-label">Regions</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">
+              {coffeeRegions.reduce((total, region) => total + region.subRegions.length, 0)}
+            </div>
+            <div className="stat-label">Farms</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{Object.keys(brewStats.regions).length}</div>
+            <div className="stat-label">Countries</div>
+          </div>
+        </div>
+
+        <div className="nav-tabs">
           <button
             className={`sidebar-tab ${activeTab === 'coffee-map' ? 'active' : ''}`}
             onClick={() => setActiveTab('coffee-map')}
           >
-            ☕ Coffee Map
+            <span className="tab-icon">🗺️</span>
+            Coffee Map
           </button>
           <button
             className={`sidebar-tab ${activeTab === 'by-notes' ? 'active' : ''}`}
             onClick={() => setActiveTab('by-notes')}
           >
-            📝 By Notes
+            <span className="tab-icon">📝</span>
+            Tasting Notes
           </button>
           <button
             className={`sidebar-tab ${activeTab === 'raw-data' ? 'active' : ''}`}
             onClick={() => setActiveTab('raw-data')}
           >
-            📊 Raw Data
+            <span className="tab-icon">📊</span>
+            Brew Data
           </button>
         </div>
-      </div>
 
-      {/* Sidebar Overlay */}
+        <div className="regions-list">
+          <h3>Tasted Regions</h3>
+          
+          {coffeeRegions.map((region) => (
+            <div 
+              key={region.id} 
+              className="region-item"
+              onClick={() => handleRegionClick(region)}
+            >
+              <div className="region-header">
+                <div>
+                  <div className="region-name">{region.name}</div>
+                  <div className="region-name-local">{region.nameLocal}</div>
+                </div>
+                <div className="region-badge">{region.brewCount} brews</div>
+              </div>
+              {region.subRegions && region.subRegions.length > 0 && (
+                <div className="region-subregions">
+                  {region.subRegions.map((subRegion) => (
+                    <span key={subRegion.id} className="subregion-pill">
+                      {subRegion.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button className="sidebar-back-button" onClick={toggleSidebar} title="Close Menu">
+          ←
+        </button>
+      </aside>
+
+      {/* Sidebar Overlay for mobile */}
       {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
 
-      {/* Header */}
-      <div className="map-header">
-        <div className="header-content">
-          <button className="menu-button" onClick={toggleSidebar} title="Open Menu">
-            ☰
-          </button>
-
-          {(selectedRegion || selectedSubRegion) && activeTab === 'coffee-map' && (
-            <button className="back-button" onClick={handleBackToMap} title="Back">
-              ← Back
-            </button>
-          )}
-          
-          <div className="header-left">
-            <div className="header-icon">☕</div>
-            <div>
-              <h1>Coffee Regions Map</h1>
-              <p>
-                {activeTab === 'coffee-map' && selectedSubRegion
-                  ? `Viewing ${selectedSubRegion.name}` 
-                  : activeTab === 'coffee-map' && selectedRegion 
-                  ? `Viewing ${selectedRegion.name} sub-regions` 
-                  : activeTab === 'coffee-map'
-                  ? 'Click on countries to see farms and micro-regions'
-                  : activeTab === 'by-notes'
-                  ? 'View notes and annotations'
-                  : 'View raw data'}
-              </p>
-            </div>
-          </div>
-
-          {selectedRegion && !selectedSubRegion && activeTab === 'coffee-map' && (
-            <div className="city-info-header">
-              <div className="city-info-content">
-                <h2>{selectedRegion.name}</h2>
-                <p>Brews: {selectedRegion.brewCount} | {selectedRegion.subRegions?.length || 0} sub-regions</p>
-              </div>
-            </div>
-          )}
-
-          {selectedSubRegion && activeTab === 'coffee-map' && (
-            <div className="city-info-header">
-              <div className="city-info-content">
-                <h2>{selectedSubRegion.name}</h2>
-                <p>Type: {selectedSubRegion.type} | Brews: {brewRecords.filter(b => b.beans === selectedSubRegion.beanName).length}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Main Content */}
-      {renderTabContent()}
+      <main className="main-content">
+        <div className="top-bar">
+          <div className="breadcrumb">
+            <div className="breadcrumb-item breadcrumb-home">
+              🏠 {selectedSubRegion ? 'World' : selectedRegion ? selectedRegion.name : 'World Map'}
+            </div>
+            {(selectedRegion || selectedSubRegion) && <span>›</span>}
+            {selectedRegion && !selectedSubRegion && (
+              <div className="breadcrumb-item breadcrumb-current">
+                {selectedRegion.name}
+              </div>
+            )}
+            {selectedSubRegion && (
+              <>
+                <div className="breadcrumb-item">
+                  {selectedRegion?.name}
+                </div>
+                <span>›</span>
+                <div className="breadcrumb-item breadcrumb-current">
+                  {selectedSubRegion.name}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="top-bar-actions">
+            {(selectedRegion || selectedSubRegion) && activeTab === 'coffee-map' && (
+              <button className="btn btn-secondary" onClick={handleBackToMap}>
+                ← Back
+              </button>
+            )}
+            <button className="btn btn-secondary" onClick={toggleSidebar}>
+              ☰ Menu
+            </button>
+          </div>
+        </div>
+
+        {renderTabContent()}
+      </main>
     </div>
   );
 }
