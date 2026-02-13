@@ -7,6 +7,8 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
+    "firebase": "^12.9.0",
+    "firebase-admin": "^13.6.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "react": "^18.2.0",
@@ -20,6 +22,7 @@
     "postcss": "^8.4.31"
   },
   "scripts": {
+    "dev": "https://coffeemap-c76b4.web.app",
     "start": "BROWSER=none WDS_SOCKET_PORT=0 vite --port 3000",
     "build": "vite build",
     "preview": "vite preview",

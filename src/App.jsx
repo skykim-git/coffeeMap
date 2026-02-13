@@ -1,12 +1,22 @@
-import React from 'react';
-import './App.css';
+import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase/config';
+import Login from './components/Login';
 import BrazilMap from './components/BrazilMap';
-// import BrazilMap from './components/BrazilMapOG';
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="App">
-      <BrazilMap />
+    <div>
+      {user ? <BrazilMap user={user} /> : <Login user={user} />}
     </div>
   );
 }

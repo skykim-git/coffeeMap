@@ -639,3 +639,9 @@
 .leaflet-popup-tip {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+.btn-primary {
+  background: linear-gradient(135deg, #5D4037, #2C1810);
+  color: white;
+  border-color: transparent;
+}
