@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/config';
-import Login from './components/Login';
+import LandingPage from './components/LandingPage';
 import BrazilMap from './components/BrazilMap';
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
 
   return (
     <div>
-      {user ? <BrazilMap user={user} /> : <Login user={user} />}
+      {user ? <BrazilMap user={user} /> : <LandingPage />}
     </div>
   );
 }
