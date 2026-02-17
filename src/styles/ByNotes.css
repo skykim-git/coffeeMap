@@ -813,3 +813,54 @@
     font-size: 2rem;
   }
 }
+
+.search-section {
+  position: relative;
+  margin-bottom: 4rem; /* Increased margin to give room for the dropdown */
+  z-index: 101; /* Higher than results to prevent overlapping text */
+}
+
+/* Refined Dropdown Spacing */
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 10px); /* Clear gap below input */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15); /* deeper shadow for depth */
+  max-height: 350px; /* slightly smaller to ensure it doesn't cover whole screen */
+  overflow-y: auto;
+  z-index: 1000;
+  border: 1px solid rgba(93, 64, 55, 0.15);
+}
+
+/* Fix Result Main spacing so emojis don't touch text */
+.result-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Better gap between emoji and text */
+}
+
+/* Results Area Spacing */
+.results-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  z-index: 1; /* Lower than search */
+  position: relative;
+}
+
+/* Fix Flavor Highlight Overlap */
+.flavor-highlight {
+  padding: 0.2rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 700;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem; /* Reduced slightly to prevent line-height issues */
+  vertical-align: middle;
+}

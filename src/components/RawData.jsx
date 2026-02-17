@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
-import { brewRecords as localBrewRecords } from '../data/brewData';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLUMNS = [
-  { key: 'date',         label: 'Date',          width: '100px' },
-  { key: 'beans',        label: 'Bean / Origin',  width: '190px' },
-  { key: 'method',       label: 'Method',         width: '110px' },
-  { key: 'waterTemp',    label: 'Temp (°C)',       width: '90px'  },
-  { key: 'grindSetting', label: 'Grind',           width: '110px' },
-  { key: 'waterIn',      label: 'Water (ml)',      width: '95px'  },
-  { key: 'notes',        label: 'Tasting Notes',   width: 'auto'  },
+  { key: 'favorite',           label: '★',              width: '40px'  },
+  { key: 'date',               label: 'Date',           width: '90px'  },
+  { key: 'beans',              label: 'Bean / Origin',  width: '160px' },
+  { key: 'method',             label: 'Method',         width: '100px' },
+  { key: 'grinder',            label: 'Grinder',        width: '100px' },
+  { key: 'grindSetting',       label: 'Grind',          width: '80px'  },
+  { key: 'groundCoffeeWeight', label: 'Coffee (g)',     width: '80px'  },
+  { key: 'waterTemp',          label: 'Temp',           width: '60px'  },
+  { key: 'waterIn',            label: 'Water',          width: '70px'  },
+  { key: 'brewTime',           label: 'Time',           width: '70px'  },
+  { key: 'daysPast',           label: 'Age',            width: '60px'  },
+  { key: 'flavorTags',         label: 'Flavors',        width: '220px' },
+  { key: 'notes',              label: 'Tasting Notes',  width: '180px' },
+  { key: 'extra',              label: 'Extra Info',     width: '150px' },
 ];
 
 const METHOD_COLORS = {
@@ -27,6 +33,43 @@ const METHOD_COLORS = {
   'Siphon':       { bg: '#F9FBE7', color: '#558B2F' },
   'Other':        { bg: '#EFEBE9', color: '#4E342E' },
 };
+
+const FLAVOR_PALETTE = {
+  citrus:     'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+  chocolate:  'linear-gradient(135deg, #8B4513 0%, #654321 100%)',
+  aroma:      'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+  fruity:     'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+  honey:      'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+  raspberry:  'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+  banana:     'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
+  green:      'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+  apple:      'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+  grape:      'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+  mango:      'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+  acidic:     'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+  nutty:      'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)',
+  pineapple:  'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
+  tropical:   'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+  floral:     'linear-gradient(135deg, #fd79a8 0%, #e84393 100%)',
+  caramel:    'linear-gradient(135deg, #D4A574 0%, #b8860b 100%)',
+  berry:      'linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%)',
+  intense:    'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+  describe:   'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+};
+
+const FLAVOR_EMOJI_MAP = {
+  citrus: '🍊', chocolate: '🍫', fruity: '🍇', berry: '🫐',
+  raspberry: '🫐', banana: '🍌', apple: '🍏', grape: '🍇',
+  mango: '🥭', pineapple: '🍍', tropical: '🌴', honey: '🍯',
+  caramel: '🍮', nutty: '🥜', floral: '🌸', aroma: '🌺',
+  acidic: '💧', intense: '🔥', green: '🌿', describe: '📝',
+};
+
+const getFlavorStyle = (word) =>
+  FLAVOR_PALETTE[word?.toLowerCase()] || 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)';
+
+const getFlavorEmoji = (word) =>
+  FLAVOR_EMOJI_MAP[word?.toLowerCase()] || '☕';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,6 +99,26 @@ const MethodBadge = ({ method }) => {
   );
 };
 
+const FlavorTagsCell = ({ tags }) => {
+  if (!tags || !Array.isArray(tags) || tags.length === 0)
+    return <span style={s.dash}>—</span>;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+      {tags.map((tag, i) => (
+        <span key={i} style={{
+          display: 'inline-flex', alignItems: 'center', gap: '3px',
+          background: getFlavorStyle(tag),
+          color: 'white', padding: '2px 7px',
+          borderRadius: '20px', fontSize: '11px', fontWeight: '700',
+          whiteSpace: 'nowrap', boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+        }}>
+          {getFlavorEmoji(tag)} {tag}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 const SortIcon = ({ active, direction }) => (
   <span style={{ marginLeft: '4px', opacity: active ? 1 : 0.3, fontSize: '10px' }}>
     {active ? (direction === 'asc' ? '▲' : '▼') : '⬍'}
@@ -69,6 +132,60 @@ const StatCard = ({ value, label, icon }) => (
     <div style={s.statLabel}>{label}</div>
   </div>
 );
+
+// ─── Edit Modal Component ─────────────────────────────────────────────────────
+
+const EditModal = ({ brew, onSave, onCancel, saving }) => {
+  const [form, setForm] = useState({ ...brew });
+
+  const handleChange = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <div style={s.backdrop} onClick={e => e.target === e.currentTarget && onCancel()}>
+      <div style={s.editModal}>
+        <h3 style={{ margin: '0 0 20px 0', color: '#2C1810' }}>Edit Brew Record</h3>
+        <div style={s.formGrid}>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Beans</label>
+            <input style={s.input} value={form.beans || ''} onChange={e => handleChange('beans', e.target.value)} />
+          </div>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Grinder</label>
+            <input style={s.input} value={form.grinder || ''} onChange={e => handleChange('grinder', e.target.value)} />
+          </div>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Grind Setting</label>
+            <input style={s.input} value={form.grindSetting || ''} onChange={e => handleChange('grindSetting', e.target.value)} />
+          </div>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Coffee Weight (g)</label>
+            <input
+              style={s.input} type="number" min="0" step="0.1" placeholder="e.g. 15"
+              value={form.groundCoffeeWeight || ''}
+              onChange={e => handleChange('groundCoffeeWeight', e.target.value)}
+            />
+          </div>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Temp (°C)</label>
+            <input style={s.input} type="number" value={form.waterTemp || ''} onChange={e => handleChange('waterTemp', e.target.value)} />
+          </div>
+          <div style={s.inputGrp}>
+            <label style={s.label}>Notes</label>
+            <textarea style={{...s.input, height: '60px'}} value={form.notes || ''} onChange={e => handleChange('notes', e.target.value)} />
+          </div>
+        </div>
+        <div style={{ ...s.deleteModalActions, marginTop: '20px' }}>
+          <button style={s.cancelBtn} onClick={onCancel} disabled={saving}>Cancel</button>
+          <button style={s.saveBtn} onClick={() => onSave(form)} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── Delete Confirm Modal ─────────────────────────────────────────────────────
 
@@ -84,9 +201,7 @@ const DeleteModal = ({ brew, onConfirm, onCancel, deleting }) => (
       </div>
       <div style={s.deleteModalNote}>This action cannot be undone.</div>
       <div style={s.deleteModalActions}>
-        <button style={s.cancelBtn} onClick={onCancel} disabled={deleting}>
-          Cancel
-        </button>
+        <button style={s.cancelBtn} onClick={onCancel} disabled={deleting}>Cancel</button>
         <button style={s.deleteConfirmBtn} onClick={onConfirm} disabled={deleting}>
           {deleting ? 'Deleting…' : 'Delete Brew'}
         </button>
@@ -106,47 +221,30 @@ function RawData() {
   const [sortKey, setSortKey]           = useState('date');
   const [sortDir, setSortDir]           = useState('desc');
   const [methodFilter, setMethodFilter] = useState('All');
-  const [brewToDelete, setBrewToDelete] = useState(null);
-  const [deleting, setDeleting]         = useState(false);
-  const [deleteError, setDeleteError]   = useState(null);
 
-  // ── Fetch ───────────────────────────────────────────────────────────────
+  const [brewToDelete, setBrewToDelete]   = useState(null);
+  const [brewToEdit, setBrewToEdit]       = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [deleteError, setDeleteError]     = useState(null);
+  const [showFavOnly, setShowFavOnly]     = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         setLoading(true);
-        setError(null);
-
-        let firestoreDocs = [];
         if (user) {
           setCurrentUid(user.uid);
           const snapshot = await getDocs(collection(db, 'users', user.uid, 'brews'));
-          firestoreDocs = snapshot.docs.map(d => ({
-            id: d.id,
-            _source: 'firestore',
-            ...d.data(),
+          const firestoreDocs = snapshot.docs.map(d => ({
+            id: d.id, _source: 'firestore', ...d.data(),
           }));
+          firestoreDocs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+          setBrews(firestoreDocs);
+        } else {
+          setCurrentUid(null);
+          setBrews([]);
         }
-
-        // Seed from local records; merge in Firestore-only docs on top
-        const localKeys = new Set(localBrewRecords.map(b => `${b.beans}__${b.date}`));
-        const firestoreOnly = firestoreDocs.filter(
-          d => !localKeys.has(`${d.beans}__${d.date}`)
-        );
-        const merged = [
-          ...localBrewRecords.map(b => ({ ...b, _source: 'local' })),
-          ...firestoreOnly,
-        ];
-
-        merged.sort((a, b) => {
-          const da = a.date || a.createdAt?.toDate?.()?.toISOString?.() || '';
-          const db_ = b.date || b.createdAt?.toDate?.()?.toISOString?.() || '';
-          return db_.localeCompare(da);
-        });
-
-        setBrews(merged);
       } catch (err) {
-        console.error('Error fetching brews:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -155,36 +253,69 @@ function RawData() {
     return () => unsubscribe();
   }, []);
 
-  // ── Delete ──────────────────────────────────────────────────────────────
   const handleDeleteConfirm = async () => {
     if (!brewToDelete || !currentUid) return;
-    setDeleting(true);
-    setDeleteError(null);
+    setActionLoading(true);
     try {
       await deleteDoc(doc(db, 'users', currentUid, 'brews', brewToDelete.id));
       setBrews(prev => prev.filter(b => b.id !== brewToDelete.id));
       setBrewToDelete(null);
     } catch (err) {
-      console.error('Delete failed:', err);
-      setDeleteError('Failed to delete. Please try again.');
+      setDeleteError('Failed to delete.');
     } finally {
-      setDeleting(false);
+      setActionLoading(false);
     }
   };
 
-  // ── Derived stats ────────────────────────────────────────────────────────
+  const handleUpdateBrew = async (updatedData) => {
+    if (!currentUid || !brewToEdit) return;
+    setActionLoading(true);
+    try {
+      const brewRef = doc(db, 'users', currentUid, 'brews', brewToEdit.id);
+      const { id, _source, ...payload } = updatedData;
+      if (payload.groundCoffeeWeight !== undefined && payload.groundCoffeeWeight !== '') {
+        payload.groundCoffeeWeight = Number(payload.groundCoffeeWeight);
+      } else {
+        payload.groundCoffeeWeight = null;
+      }
+      await updateDoc(brewRef, payload);
+      setBrews(prev => prev.map(b => b.id === brewToEdit.id ? { ...b, ...updatedData } : b));
+      setBrewToEdit(null);
+    } catch (err) {
+      alert('Failed to update brew.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async (brew) => {
+    if (!currentUid) return;
+    const newVal = !brew.favorite;
+    // Optimistic update
+    setBrews(prev => prev.map(b => b.id === brew.id ? { ...b, favorite: newVal } : b));
+    try {
+      await updateDoc(doc(db, 'users', currentUid, 'brews', brew.id), { favorite: newVal });
+    } catch (err) {
+      // Revert on failure
+      setBrews(prev => prev.map(b => b.id === brew.id ? { ...b, favorite: brew.favorite } : b));
+    }
+  };
+
   const stats = useMemo(() => {
     if (brews.length === 0) return null;
     const methods = brews.map(b => b.method).filter(Boolean);
     const methodFreq = methods.reduce((acc, m) => { acc[m] = (acc[m] || 0) + 1; return acc; }, {});
     const topMethod = Object.entries(methodFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
     const beans = [...new Set(brews.map(b => b.beans).filter(Boolean))];
-    const temps = brews.map(b => b.waterTemp).filter(v => v !== null && v !== undefined && v !== '?');
+    const temps = brews.map(b => b.waterTemp).filter(v => v && v !== '?');
     const avgTemp = temps.length ? Math.round(temps.reduce((a, b) => a + Number(b), 0) / temps.length) : null;
-    return { total: brews.length, uniqueBeans: beans.length, topMethod, avgTemp };
+    // Top flavor across all brews
+    const allTags = brews.flatMap(b => Array.isArray(b.flavorTags) ? b.flavorTags : []);
+    const tagFreq = allTags.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
+    const topFlavor = Object.entries(tagFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    return { total: brews.length, uniqueBeans: beans.length, topMethod, avgTemp, topFlavor };
   }, [brews]);
 
-  // ── Filters + sort ───────────────────────────────────────────────────────
   const allMethods = useMemo(() => {
     const set = new Set(brews.map(b => b.method).filter(Boolean));
     return ['All', ...Array.from(set).sort()];
@@ -192,70 +323,45 @@ function RawData() {
 
   const filtered = useMemo(() => {
     let rows = [...brews];
+    if (showFavOnly) rows = rows.filter(b => b.favorite);
     if (methodFilter !== 'All') rows = rows.filter(b => b.method === methodFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
-      rows = rows.filter(b =>
-        [b.beans, b.method, b.notes, b.grindSetting].some(v =>
-          v && String(v).toLowerCase().includes(q)
-        )
-      );
+      rows = rows.filter(b => {
+        const tagMatch = Array.isArray(b.flavorTags) &&
+          b.flavorTags.some(t => t.toLowerCase().includes(q));
+        return tagMatch || [b.beans, b.method, b.notes, b.grindSetting, b.grinder, b.extra]
+          .some(v => v && String(v).toLowerCase().includes(q));
+      });
     }
     rows.sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
-      if (av == null) av = '';
-      if (bv == null) bv = '';
-      if (typeof av === 'number' && typeof bv === 'number') {
+      if (av == null) av = ''; if (bv == null) bv = '';
+      if (typeof av === 'number' && typeof bv === 'number')
         return sortDir === 'asc' ? av - bv : bv - av;
-      }
       return sortDir === 'asc'
         ? String(av).localeCompare(String(bv))
         : String(bv).localeCompare(String(av));
     });
     return rows;
-  }, [brews, search, methodFilter, sortKey, sortDir]);
+  }, [brews, search, methodFilter, sortKey, sortDir, showFavOnly]);
 
   const handleSort = (key) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('asc'); }
   };
 
-  // ── Loading / error / empty states ───────────────────────────────────────
   if (loading) return (
     <div style={s.centerWrap}>
       <div style={s.spinnerRing} />
-      <p style={s.loadingText}>Brewing your data…</p>
+      <p>Brewing your data…</p>
     </div>
   );
 
-  if (error) return (
-    <div style={s.centerWrap}>
-      <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>⚠️</div>
-      <p style={{ color: '#BF360C', fontWeight: '600', fontSize: '14px' }}>Failed to load brew data</p>
-      <p style={{ color: '#8D6E63', fontSize: '12px', marginTop: '4px' }}>{error}</p>
-    </div>
-  );
-
-  if (brews.length === 0) return (
-    <div style={s.centerWrap}>
-      <div style={{ fontSize: '3rem', marginBottom: '12px' }}>☕</div>
-      <p style={{ color: '#2C1810', fontWeight: '600', fontSize: '15px' }}>No brews recorded yet</p>
-      <p style={{ color: '#8D6E63', fontSize: '13px', marginTop: '4px' }}>Add your first brew using the "+ Add Brew" button.</p>
-    </div>
-  );
-
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div style={s.root}>
-
-      {brewToDelete && (
-        <DeleteModal
-          brew={brewToDelete}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => { setBrewToDelete(null); setDeleteError(null); }}
-          deleting={deleting}
-        />
-      )}
+      {brewToDelete && <DeleteModal brew={brewToDelete} onConfirm={handleDeleteConfirm} onCancel={() => setBrewToDelete(null)} deleting={actionLoading} />}
+      {brewToEdit   && <EditModal   brew={brewToEdit}   onSave={handleUpdateBrew}       onCancel={() => setBrewToEdit(null)}   saving={actionLoading} />}
 
       <div style={s.header}>
         <div style={s.headerLeft}>
@@ -267,35 +373,53 @@ function RawData() {
         </div>
       </div>
 
-      {deleteError && (
-        <div style={s.errorToast}>
-          ⚠️ {deleteError}
-          <button style={s.errorToastClose} onClick={() => setDeleteError(null)}>✕</button>
-        </div>
-      )}
-
       {stats && (
         <div style={s.statsRow}>
-          <StatCard value={stats.total}        label="Total Brews"      icon="☕" />
-          <StatCard value={stats.uniqueBeans}  label="Unique Origins"   icon="🌍" />
-          <StatCard value={stats.topMethod}    label="Favourite Method" icon="🏆" />
+          <StatCard value={stats.total}    label="Total Brews"      icon="☕" />
+          <StatCard value={stats.uniqueBeans} label="Unique Origins" icon="🌍" />
+          <StatCard value={stats.topMethod}   label="Fav. Method"   icon="🏆" />
           <StatCard value={stats.avgTemp ? `${stats.avgTemp}°C` : '—'} label="Avg. Temp" icon="🌡️" />
+          {stats.topFlavor && (
+            <StatCard
+              value={
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  background: getFlavorStyle(stats.topFlavor),
+                  color: 'white', padding: '2px 10px',
+                  borderRadius: '12px', fontSize: '13px', fontWeight: '700',
+                }}>
+                  {getFlavorEmoji(stats.topFlavor)} {stats.topFlavor}
+                </span>
+              }
+              label="Top Flavor"
+              icon="👅"
+            />
+          )}
         </div>
       )}
 
       <div style={s.toolbar}>
-        <div style={s.searchWrap}>
-          <span style={s.searchIcon}>🔍</span>
-          <input
-            style={s.searchInput}
-            type="text"
-            placeholder="Search beans, notes, grind…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
-            <button style={s.clearBtn} onClick={() => setSearch('')}>✕</button>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={s.searchWrap}>
+            <span style={s.searchIcon}>🔍</span>
+            <input
+              style={s.searchInput}
+              placeholder="Search beans, flavors, notes, grind…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          <button
+            style={{
+              ...s.filterPill,
+              display: 'flex', alignItems: 'center', gap: '5px',
+              ...(showFavOnly ? { background: '#F59E0B', color: 'white', border: '1px solid #F59E0B' } : {}),
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => setShowFavOnly(v => !v)}
+          >
+            <span style={{ fontSize: '13px' }}>{showFavOnly ? '★' : '☆'}</span> Favourites
+          </button>
         </div>
         <div style={s.filterRow}>
           {allMethods.map(m => (
@@ -303,20 +427,9 @@ function RawData() {
               key={m}
               style={{ ...s.filterPill, ...(methodFilter === m ? s.filterPillActive : {}) }}
               onClick={() => setMethodFilter(m)}
-            >
-              {m}
-            </button>
+            >{m}</button>
           ))}
         </div>
-      </div>
-
-      <div style={s.resultCount}>
-        Showing <strong>{filtered.length}</strong> of <strong>{brews.length}</strong> brews
-        {(search || methodFilter !== 'All') && (
-          <button style={s.clearFilters} onClick={() => { setSearch(''); setMethodFilter('All'); }}>
-            Clear filters
-          </button>
-        )}
       </div>
 
       <div style={s.tableWrap}>
@@ -324,441 +437,119 @@ function RawData() {
           <thead>
             <tr>
               {COLUMNS.map(col => (
-                <th
-                  key={col.key}
-                  style={{ ...s.th, width: col.width, minWidth: col.width !== 'auto' ? col.width : undefined }}
-                  onClick={() => handleSort(col.key)}
-                >
-                  {col.label}
-                  <SortIcon active={sortKey === col.key} direction={sortDir} />
+                <th key={col.key} style={{ ...s.th, width: col.width }} onClick={() => handleSort(col.key)}>
+                  {col.label} <SortIcon active={sortKey === col.key} direction={sortDir} />
                 </th>
               ))}
-              <th style={{ ...s.th, width: '44px', cursor: 'default' }} />
+              <th style={{ ...s.th, width: '80px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((brew, idx) => (
-              <tr
-                key={brew.id || `local-${idx}`}
-                style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}
-              >
+              <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
+                <td style={{ ...s.td, ...s.tdFav }}>
+                  <button
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: '18px', lineHeight: 1, padding: '2px',
+                      color: brew.favorite ? '#F59E0B' : '#D7CCC8',
+                      transition: 'color 0.15s, transform 0.15s',
+                      transform: brew.favorite ? 'scale(1.15)' : 'scale(1)',
+                      filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none',
+                    }}
+                    title={brew.favorite ? 'Unfavourite' : 'Favourite'}
+                    onClick={() => handleToggleFavorite(brew)}
+                  >
+                    {brew.favorite ? '★' : '☆'}
+                  </button>
+                </td>
+                <td style={s.td}><span style={s.dateCell}>{formatDate(brew.date)}</span></td>
+                <td style={{ ...s.td, ...s.tdBeans }}>{fmt(brew.beans)}</td>
+                <td style={s.td}><MethodBadge method={brew.method} /></td>
+                <td style={s.td}>{fmt(brew.grinder)}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.grindSetting)}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{brew.groundCoffeeWeight ? `${brew.groundCoffeeWeight}g` : '—'}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterTemp ? `${brew.waterTemp}°` : '—'}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterIn ? `${brew.waterIn}ml` : '—'}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.brewTime)}</td>
+                <td style={{ ...s.td, ...s.tdCenter }}>{brew.daysPast ? `${brew.daysPast}d` : '—'}</td>
+                <td style={{ ...s.td, ...s.tdTags }}><FlavorTagsCell tags={brew.flavorTags} /></td>
+                <td style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? <span style={s.noteText}>{brew.notes}</span> : '—'}</td>
+                <td style={{ ...s.td, ...s.tdNotes }}>{fmt(brew.extra)}</td>
                 <td style={s.td}>
-                  <span style={s.dateCell}>{formatDate(brew.date)}</span>
-                </td>
-                <td style={{ ...s.td, ...s.tdBeans }}>
-                  {fmt(brew.beans)}
-                </td>
-                <td style={s.td}>
-                  <MethodBadge method={brew.method} />
-                </td>
-                <td style={{ ...s.td, ...s.tdCenter }}>
-                  {brew.waterTemp ? `${brew.waterTemp}°` : <span style={s.dash}>—</span>}
-                </td>
-                <td style={{ ...s.td, ...s.tdCenter }}>
-                  {fmt(brew.grindSetting)}
-                </td>
-                <td style={{ ...s.td, ...s.tdCenter }}>
-                  {brew.waterIn ? `${brew.waterIn}` : <span style={s.dash}>—</span>}
-                </td>
-                <td style={{ ...s.td, ...s.tdNotes }}>
-                  {brew.notes
-                    ? <span style={s.noteText}>{brew.notes}</span>
-                    : <span style={s.dash}>—</span>
-                  }
-                </td>
-                <td style={{ ...s.td, ...s.tdDelete }}>
-                  {brew._source === 'firestore' ? (
-                    <button
-                      style={s.deleteBtn}
-                      onClick={() => setBrewToDelete(brew)}
-                      title="Delete this brew"
-                    >
-                      🗑
-                    </button>
-                  ) : (
-                    <span style={s.localPin} title="Local seed data — edit in brewData.js">📌</span>
-                  )}
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                    <button style={s.editBtn}   onClick={() => setBrewToEdit(brew)}>✏️</button>
+                    <button style={s.deleteBtn} onClick={() => setBrewToDelete(brew)}>🗑</button>
+                  </div>
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={COLUMNS.length + 1} style={{ textAlign: 'center', padding: '40px', color: '#8D6E63' }}>
+                  No brews match your search.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-
-        {filtered.length === 0 && (
-          <div style={s.emptyTable}>
-            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔍</div>
-            <div style={{ fontWeight: '600', color: '#2C1810', fontSize: '14px' }}>No results found</div>
-            <div style={{ color: '#8D6E63', fontSize: '12px', marginTop: '4px' }}>Try adjusting your search or filters</div>
-          </div>
-        )}
-      </div>
-
-      <div style={s.legend}>
-        <span style={s.legendItem}><span>📌</span> Local seed data — edit in <code>brewData.js</code></span>
-        <span style={s.legendItem}><span>🗑</span> Added via app — deletable</span>
       </div>
     </div>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const s = {
-  root: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    background: '#FAF7F4',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    overflow: 'hidden',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '18px 24px 14px',
-    background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  headerTitle: {
-    fontSize: '16px',
-    fontWeight: '700',
-    color: '#F5E6D3',
-    letterSpacing: '0.2px',
-  },
-  headerSub: {
-    fontSize: '11px',
-    color: 'rgba(245,230,211,0.55)',
-    marginTop: '1px',
-  },
-  errorToast: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    background: '#FFEBEE',
-    borderBottom: '1px solid #FFCDD2',
-    padding: '10px 24px',
-    fontSize: '13px',
-    color: '#B71C1C',
-    fontWeight: '500',
-  },
-  errorToastClose: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#B71C1C',
-    fontSize: '12px',
-    padding: '2px 6px',
-    fontFamily: 'inherit',
-  },
-  statsRow: {
-    display: 'flex',
-    gap: '1px',
-    background: '#D7CCC8',
-    borderBottom: '1px solid #D7CCC8',
-  },
-  statCard: {
-    flex: 1,
-    background: '#FFFDF9',
-    padding: '14px 16px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '2px',
-  },
-  statIcon:  { fontSize: '16px', marginBottom: '2px' },
-  statValue: { fontSize: '20px', fontWeight: '800', color: '#2C1810', lineHeight: 1 },
-  statLabel: {
-    fontSize: '10px',
-    fontWeight: '700',
-    color: '#8D6E63',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    marginTop: '2px',
-    textAlign: 'center',
-  },
-  toolbar: {
-    padding: '12px 24px 8px',
-    background: '#FFFDF9',
-    borderBottom: '1px solid #EFEBE9',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  searchWrap: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    maxWidth: '360px',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: '10px',
-    fontSize: '13px',
-    pointerEvents: 'none',
-  },
-  searchInput: {
-    width: '100%',
-    padding: '8px 32px 8px 32px',
-    border: '1px solid #D7CCC8',
-    borderRadius: '6px',
-    fontSize: '13px',
-    color: '#2C1810',
-    background: '#FAF7F4',
-    outline: 'none',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-  },
-  clearBtn: {
-    position: 'absolute',
-    right: '8px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#8D6E63',
-    fontSize: '11px',
-    padding: '2px 4px',
-    fontFamily: 'inherit',
-  },
-  filterRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '6px',
-  },
-  filterPill: {
-    padding: '4px 12px',
-    borderRadius: '20px',
-    border: '1px solid #D7CCC8',
-    background: 'transparent',
-    fontSize: '11px',
-    fontWeight: '600',
-    color: '#8D6E63',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
-  filterPillActive: {
-    background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
-    border: '1px solid transparent',
-    color: '#F5E6D3',
-  },
-  resultCount: {
-    padding: '7px 24px',
-    fontSize: '11px',
-    color: '#8D6E63',
-    background: '#FAF7F4',
-    borderBottom: '1px solid #EFEBE9',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  clearFilters: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#5D4037',
-    fontSize: '11px',
-    fontWeight: '600',
-    padding: 0,
-    textDecoration: 'underline',
-    fontFamily: 'inherit',
-  },
-  tableWrap: {
-    flex: 1,
-    overflowY: 'auto',
-    overflowX: 'auto',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    tableLayout: 'fixed',
-    minWidth: '740px',
-  },
-  th: {
-    padding: '10px 16px',
-    background: '#EFEBE9',
-    fontSize: '10px',
-    fontWeight: '700',
-    color: '#8D6E63',
-    textTransform: 'uppercase',
-    letterSpacing: '0.6px',
-    textAlign: 'left',
-    cursor: 'pointer',
-    userSelect: 'none',
-    position: 'sticky',
-    top: 0,
-    zIndex: 1,
-    borderBottom: '2px solid #D7CCC8',
-    whiteSpace: 'nowrap',
-  },
-  tr: {
-    borderBottom: '1px solid #F3EDEA',
-  },
-  trEven: {
-    background: '#FFFDF9',
-  },
-  td: {
-    padding: '10px 16px',
-    fontSize: '13px',
-    color: '#2C1810',
-    verticalAlign: 'middle',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  tdBeans: {
-    fontWeight: '600',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    lineHeight: '1.4',
-  },
-  tdCenter: {
-    textAlign: 'center',
-    color: '#4E342E',
-  },
-  tdNotes: {
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    lineHeight: '1.4',
-  },
-  tdDelete: {
-    textAlign: 'center',
-    padding: '6px 8px',
-    width: '44px',
-  },
-  deleteBtn: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '15px',
-    padding: '4px 6px',
-    borderRadius: '6px',
-    opacity: 0.4,
-    lineHeight: 1,
-  },
-  localPin: {
-    fontSize: '13px',
-    opacity: 0.35,
-  },
-  badge: {
-    display: 'inline-block',
-    padding: '3px 10px',
-    borderRadius: '12px',
-    fontSize: '11px',
-    fontWeight: '700',
-    letterSpacing: '0.2px',
-  },
-  dateCell: {
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#5D4037',
-    fontVariantNumeric: 'tabular-nums',
-  },
-  noteText: {
-    fontSize: '12px',
-    color: '#4E342E',
-    fontStyle: 'italic',
-  },
-  dash: {
-    color: '#BCAAA4',
-    fontSize: '13px',
-  },
-  legend: {
-    display: 'flex',
-    gap: '20px',
-    padding: '8px 24px',
-    borderTop: '1px solid #EFEBE9',
-    background: '#FAF7F4',
-    fontSize: '11px',
-    color: '#8D6E63',
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-  },
-  backdrop: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(20, 10, 4, 0.55)',
-    backdropFilter: 'blur(4px)',
-    zIndex: 1000,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '16px',
-  },
-  deleteModal: {
-    background: '#FFFDF9',
-    borderRadius: '12px',
-    padding: '32px 28px 24px',
-    maxWidth: '380px',
-    width: '100%',
-    textAlign: 'center',
-    boxShadow: '0 24px 64px rgba(0,0,0,0.3)',
-  },
-  deleteModalIcon:    { fontSize: '2.5rem', marginBottom: '12px' },
-  deleteModalTitle:   { fontSize: '18px', fontWeight: '700', color: '#2C1810', marginBottom: '8px' },
-  deleteModalSub:     { fontSize: '13px', color: '#5D4037', marginBottom: '6px', lineHeight: '1.5' },
-  deleteModalNote:    { fontSize: '12px', color: '#BCAAA4', marginBottom: '24px' },
-  deleteModalActions: { display: 'flex', gap: '10px', justifyContent: 'center' },
-  cancelBtn: {
-    padding: '9px 20px',
-    background: 'transparent',
-    border: '1px solid #D7CCC8',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#8D6E63',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
-  deleteConfirmBtn: {
-    padding: '9px 20px',
-    background: 'linear-gradient(135deg, #C62828 0%, #8B0000 100%)',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '700',
-    color: 'white',
-    cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(198,40,40,0.3)',
-    fontFamily: 'inherit',
-  },
-  centerWrap: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#FAF7F4',
-    padding: '2rem',
-    height: '100%',
-    textAlign: 'center',
-  },
-  loadingText: {
-    color: '#8D6E63',
-    fontSize: '14px',
-    fontWeight: '500',
-    marginTop: '12px',
-    fontFamily: 'inherit',
-  },
-  emptyTable: {
-    padding: '48px 24px',
-    textAlign: 'center',
-  },
-  spinnerRing: {
-    width: '36px',
-    height: '36px',
-    border: '3px solid #EFEBE9',
-    borderTop: '3px solid #5D4037',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
+  root:        { height: '100%', display: 'flex', flexDirection: 'column', background: '#FAF7F4', fontFamily: 'sans-serif', overflow: 'hidden' },
+  header:      { display: 'flex', padding: '18px 24px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
+  headerLeft:  { display: 'flex', alignItems: 'center', gap: '12px' },
+  headerTitle: { fontSize: '16px', fontWeight: '700', color: '#F5E6D3' },
+  headerSub:   { fontSize: '11px', color: 'rgba(245,230,211,0.5)' },
+  statsRow:    { display: 'flex', background: '#D7CCC8', gap: '1px' },
+  statCard:    { flex: 1, background: '#FFFDF9', padding: '14px', textAlign: 'center' },
+  statIcon:    { fontSize: '16px', marginBottom: '4px' },
+  statValue:   { fontSize: '18px', fontWeight: '800' },
+  statLabel:   { fontSize: '9px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase' },
+  toolbar:     { padding: '12px 24px', background: '#FFFDF9', borderBottom: '1px solid #EFEBE9', display: 'flex', flexDirection: 'column', gap: '10px' },
+  searchWrap:  { position: 'relative', maxWidth: '360px' },
+  searchInput: { width: '100%', padding: '8px 12px 8px 30px', border: '1px solid #D7CCC8', borderRadius: '6px' },
+  searchIcon:  { position: 'absolute', left: '10px', top: '8px', fontSize: '12px' },
+  filterRow:   { display: 'flex', gap: '6px', flexWrap: 'wrap' },
+  filterPill:  { padding: '4px 12px', borderRadius: '20px', border: '1px solid #D7CCC8', fontSize: '11px', cursor: 'pointer', background: 'none' },
+  filterPillActive: { background: '#2C1810', color: '#F5E6D3', border: '1px solid #2C1810' },
+  tableWrap:   { flex: 1, overflow: 'auto' },
+  table:       { width: '100%', borderCollapse: 'collapse', minWidth: '1200px', tableLayout: 'fixed' },
+  th:          { position: 'sticky', top: 0, background: '#EFEBE9', padding: '10px 16px', fontSize: '10px', textAlign: 'left', zIndex: 1, cursor: 'pointer', userSelect: 'none' },
+  tr:          { borderBottom: '1px solid #F3EDEA' },
+  trEven:      { background: '#FFFDF9' },
+  td:          { padding: '8px 16px', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' },
+  tdBeans:     { fontWeight: '600', whiteSpace: 'normal' },
+  tdFav:       { textAlign: 'center', padding: '4px 6px', width: '40px' },
+  tdCenter:    { textAlign: 'center' },
+  tdNotes:     { whiteSpace: 'normal', fontStyle: 'italic', fontSize: '12px' },
+  tdTags:      { whiteSpace: 'normal', verticalAlign: 'middle', padding: '6px 16px' },
+  editBtn:     { background: '#E3F2FD', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
+  deleteBtn:   { background: '#FFEBEE', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
+  backdrop:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
+  deleteModal: { background: 'white', padding: '24px', borderRadius: '12px', textAlign: 'center', maxWidth: '300px' },
+  deleteModalIcon:  { fontSize: '32px', marginBottom: '12px' },
+  deleteModalTitle: { fontSize: '16px', fontWeight: '700', marginBottom: '8px' },
+  deleteModalSub:   { fontSize: '13px', color: '#5D4037', marginBottom: '8px' },
+  deleteModalNote:  { fontSize: '11px', color: '#B71C1C', marginBottom: '20px' },
+  deleteModalActions: { display: 'flex', gap: '12px', justifyContent: 'center' },
+  editModal:   { background: 'white', padding: '24px', borderRadius: '12px', width: '400px' },
+  formGrid:    { display: 'flex', flexDirection: 'column', gap: '12px' },
+  inputGrp:    { display: 'flex', flexDirection: 'column', gap: '4px' },
+  label:       { fontSize: '12px', fontWeight: '700', color: '#8D6E63' },
+  input:       { padding: '8px', border: '1px solid #D7CCC8', borderRadius: '4px' },
+  saveBtn:     { padding: '9px 20px', background: '#2E7D32', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' },
+  cancelBtn:   { padding: '9px 20px', background: 'none', border: '1px solid #D7CCC8', borderRadius: '6px', cursor: 'pointer' },
+  deleteConfirmBtn: { padding: '9px 20px', background: '#C62828', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700' },
+  badge:       { padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' },
+  dateCell:    { fontSize: '12px', fontWeight: '600' },
+  dash:        { color: '#BCAAA4' },
+  noteText:    { color: '#5D4037' },
+  centerWrap:  { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' },
+  spinnerRing: { width: '24px', height: '24px', border: '3px solid #EFEBE9', borderTopColor: '#5D4037', borderRadius: '50%', animation: 'spin 1s infinite linear' },
 };
 
 export default RawData;
