@@ -28,19 +28,6 @@ const stopWords = new Set([
   'compared', 'clear', 'strong', 'prominent', 'identify', 'texture', 'sip'
 ]);
 
-// ─── Bean ↔ SubRegion matching ────────────────────────────────────────────────
-//
-// A brew record "matches" a subRegion if the brew's `beans` string contains
-// at least one meaningful word from the subRegion's `name` OR `nameLocal`.
-// This is much more forgiving than the old exact-match on `beanName`.
-//
-// Examples that now match subRegion { name: "Bensa Odako", nameLocal: "벤사 오다코" }:
-//   ✓ "Ethiopia Sidama Bensa Odako G1 Natural"   (exact beanName — still works)
-//   ✓ "Bensa Odako Natural"                       (partial)
-//   ✓ "Ethiopia Bensa"                            (single word)
-//   ✓ "벤사 오다코"                                (Korean name)
-
-// Short generic words we don't want to match on (e.g. "La", "El", "de")
 const NAME_STOP_WORDS = new Set([
   'la', 'el', 'de', 'do', 'da', 'los', 'las', 'san', 'santa',
   'g1', 'g2', 'natural', 'washed', 'honey', 'anaerobic',
@@ -49,26 +36,20 @@ const NAME_STOP_WORDS = new Set([
 const tokenize = (str) =>
   (str || '')
     .toLowerCase()
-    .replace(/[^\w\s가-힣]/g, ' ')   // keep Korean characters too
+    .replace(/[^\w\s가-힣]/g, ' ')
     .split(/\s+/)
     .filter(t => t.length > 1 && !NAME_STOP_WORDS.has(t));
 
 const beanMatchesSubRegion = (beanName, subRegion) => {
   const beanTokens = new Set(tokenize(beanName));
   if (beanTokens.size === 0) return false;
-
-  // Collect meaningful tokens from name + nameLocal + legacy beanName
   const regionTokens = [
     ...tokenize(subRegion.name),
     ...tokenize(subRegion.nameLocal),
-    ...tokenize(subRegion.beanName),   // keep backward compat for exact beanName
+    ...tokenize(subRegion.beanName),
   ];
-
-  // At least ONE region token must appear in the bean string
   return regionTokens.some(rt => beanTokens.has(rt));
 };
-
-// ─── Data helpers (accept brewRecords as param for live refresh) ─────────────
 
 const getTastedRegions = (allCoffeeRegions, brewRecords) => {
   return allCoffeeRegions
@@ -104,10 +85,7 @@ const getBrewStats = (allCoffeeRegions, brewRecords) => {
   };
 };
 
-// ─── Flavor helpers ──────────────────────────────────────────────────────────
-
 const extractFlavorNotes = (subRegion, brewRecords) => {
-  // Match using the new fuzzy logic
   const brews = brewRecords.filter(brew => beanMatchesSubRegion(brew.beans, subRegion));
   if (brews.length === 0) return [];
   const allNotes = brews
@@ -454,20 +432,22 @@ function FlavorPicker({ selectedFlavors, onChange }) {
 
 // ─── Add Brew Modal ───────────────────────────────────────────────────────────
 
-// ─── Add Brew Modal ───────────────────────────────────────────────────────────
-
 const BREW_METHODS = ['V60', 'Chemex', 'AeroPress', 'French Press', 'Espresso', 'Moka Pot', 'Cold Brew', 'Siphon', 'Other'];
+const PROCESSING_METHODS = ['Natural', 'Washed', 'Honey', 'Anaerobic', 'Wet-Hulled', 'Semi-Washed', 'Other'];
+const ROAST_LEVELS = ['Light', 'Light-Medium', 'Medium', 'Medium-Dark', 'Dark', 'Extra Dark'];
 
 const INITIAL_FEATURES = {
-  date: true, beans: true, method: true, grinder: true, grindSetting: true,
+  date: true, beans: true, variety: true, processing: true, roastLevel: true,
+  method: true, grinder: true, grindSetting: true,
   groundCoffeeWeight: true, waterTemp: true, waterIn: true, brewTime: true,
-  daysPast: true, flavorTags: true, notes: true, extra: true
+  daysPast: true, flavorTags: true, notes: true, brewingRecipe: true, extra: true
 };
 
 const EMPTY_FORM = {
-  beans: '', method: '', grinder: '', waterTemp: '', grindSetting: '',
-  groundCoffeeWeight: '', waterIn: '', notes: '', extra: '', brewTime: '', daysPast: '',
-  flavorTags: [],
+  beans: '', variety: '', processing: '', roastLevel: '',
+  method: '', grinder: '', waterTemp: '', grindSetting: '',
+  groundCoffeeWeight: '', waterIn: '', notes: '', brewingRecipe: '', extra: '',
+  brewTime: '', daysPast: '', flavorTags: [],
   date: new Date().toISOString().split('T')[0],
 };
 
@@ -590,16 +570,36 @@ function AddBrewModal({ onClose, onSubmitted }) {
 
         <form onSubmit={handleSubmit}>
           <div style={ms.grid}>
+
+            {/* ── Date & Beans ── */}
             {renderField("Date", "date", "date", "", ms.fieldHalf)}
-            {renderField("Beans", "beans", "text", "Origin/Roaster", ms.fieldHalf)}
+            {renderField("Beans", "beans", "text", "Origin / Roaster", ms.fieldHalf)}
+
+            {/* ── Bean Info ── */}
+            <div style={{ width: '100%' }}>
+              <div style={ms.sectionDivider}>Bean Info</div>
+            </div>
+            {renderField("Variety", "variety", "text", "Geisha, Bourbon, Chiroso…", ms.fieldThird)}
+            {renderField("Processing", "processing", "select", "", ms.fieldThird, PROCESSING_METHODS)}
+            {renderField("Roast Level", "roastLevel", "select", "", ms.fieldThird, ROAST_LEVELS)}
+
+            {/* ── Brew Setup ── */}
+            <div style={{ width: '100%' }}>
+              <div style={ms.sectionDivider}>Brew Setup</div>
+            </div>
             {renderField("Brew Method", "method", "select", "", ms.fieldThird, BREW_METHODS)}
-            {renderField("Grinder", "grinder", "text", "Comandante...", ms.fieldThird)}
+            {renderField("Grinder", "grinder", "text", "Comandante…", ms.fieldThird)}
             {renderField("Setting", "grindSetting", "text", "20 clicks", ms.fieldThird)}
             {renderField("Coffee (g)", "groundCoffeeWeight", "number", "15", ms.fieldThird)}
             {renderField("Temp (°C)", "waterTemp", "number", "93", ms.fieldThird)}
             {renderField("Water (ml)", "waterIn", "number", "250", ms.fieldThird)}
             {renderField("Brew Time", "brewTime", "text", "2:30", ms.fieldThird)}
             {renderField("Days Post Roast", "daysPast", "number", "14", ms.fieldThird)}
+
+            {/* ── Tasting ── */}
+            <div style={{ width: '100%' }}>
+              <div style={ms.sectionDivider}>Tasting</div>
+            </div>
 
             {/* Flavor Tags — custom picker */}
             <div style={{ width: '100%', opacity: activeFeatures.flavorTags ? 1 : 0.4 }}>
@@ -622,8 +622,14 @@ function AddBrewModal({ onClose, onSubmitted }) {
               }
             </div>
 
-            {renderField("Tasting Notes", "notes", "textarea", "Extra context, body, finish…", ms.fieldFull)}
-            {renderField("Extra Notes", "extra", "textarea", "Water recipe, etc...", ms.fieldFull)}
+            {renderField("Tasting Notes", "notes", "textarea", "Body, finish, acidity…", ms.fieldFull)}
+
+            {/* ── Recipe & Extra ── */}
+            <div style={{ width: '100%' }}>
+              <div style={ms.sectionDivider}>Recipe & Notes</div>
+            </div>
+            {renderField("Brewing Recipe", "brewingRecipe", "textarea", "Pour schedule: 0s bloom 45g, 45s +100g, 90s +105g…", ms.fieldFull)}
+            {renderField("Extra Notes", "extra", "textarea", "Water recipe, equipment notes…", ms.fieldFull)}
           </div>
 
           <div style={ms.actions}>
@@ -649,18 +655,20 @@ const ms = {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingTop: '64px',
+    paddingTop: '40px',
     paddingLeft: '16px',
     paddingRight: '16px',
+    overflowY: 'auto',
   },
   modal: {
     background: '#FFFDF9',
     borderRadius: '12px',
     width: '100%',
-    maxWidth: '540px',
+    maxWidth: '650px',
     boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
     overflow: 'hidden',
     animation: 'slideDown 0.2s ease',
+    marginBottom: '40px',
   },
   header: {
     display: 'flex',
@@ -669,6 +677,9 @@ const ms = {
     padding: '18px 24px',
     borderBottom: '1px solid #EFEBE9',
     background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
   },
   headerLeft: { display: 'flex', alignItems: 'center', gap: '10px' },
   title: { fontSize: '16px', fontWeight: '700', color: '#F5E6D3', letterSpacing: '0.2px' },
@@ -682,10 +693,16 @@ const ms = {
     background: '#FFF3E0', border: '1px solid #FFCC80', borderRadius: 0,
     padding: '10px 24px', fontSize: '13px', color: '#E65100', fontWeight: '500',
   },
+  sectionDivider: {
+    fontSize: '10px', fontWeight: '800', color: '#A1887F',
+    textTransform: 'uppercase', letterSpacing: '1.2px',
+    borderBottom: '1px solid #EFEBE9', paddingBottom: '6px',
+    marginTop: '4px',
+  },
   grid: { display: 'flex', flexWrap: 'wrap', gap: '14px', padding: '20px 24px' },
   fieldFull: { width: '100%' },
   fieldHalf: { width: 'calc(50% - 7px)' },
-  fieldThird: { width: 'calc(33.33% - 10px)', marginBottom: '10px' },
+  fieldThird: { width: 'calc(33.33% - 10px)', marginBottom: '2px' },
   label: {
     display: 'block', fontSize: '11px', fontWeight: '700', color: '#8D6E63',
     textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px',
@@ -702,6 +719,7 @@ const ms = {
   actions: {
     display: 'flex', justifyContent: 'flex-end', gap: '10px',
     padding: '16px 24px', borderTop: '1px solid #EFEBE9', background: '#FAF7F4',
+    position: 'sticky', bottom: 0,
   },
   cancelBtn: {
     padding: '9px 18px', background: 'transparent', border: '1px solid #D7CCC8',
