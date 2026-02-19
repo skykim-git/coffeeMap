@@ -21,12 +21,54 @@ const stopWords = new Set([
 // ─── Flavor emoji ─────────────────────────────────────────────────────────────
 const getFlavorEmoji = (flavor) => {
   const map = {
-    citrus:'🍊', chocolate:'🍫', fruity:'🍇', berry:'🫐', raspberry:'🫐',
-    banana:'🍌', apple:'🍏', grape:'🍇', mango:'🥭', pineapple:'🍍',
-    tropical:'🌴', honey:'🍯', caramel:'🍮', nutty:'🥜', floral:'🌸',
-    aroma:'🌺', acidic:'💧', intense:'🔥', green:'🌿',
+    // Fruits
+    citrus: '🍊', lemon: '🍋', lime: '🍋', orange: '🍊',
+    fruity: '🍇', berry: '🫐', raspberry: '🫐', blueberry: '🫐',
+    strawberry: '🍓', cherry: '🍒', plum: '🍑', peach: '🍑',
+    apricot: '🍑', banana: '🍌', apple: '🍏', grape: '🍇',
+    mango: '🥭', pineapple: '🍍', tropical: '🌴', fig: '🌰',
+    date: '🌰', raisin: '🍇', prune: '🍇',
+
+    // Sweetness & Caramel
+    honey: '🍯', caramel: '🍮', toffee: '🍮', butterscotch: '🍮',
+    molasses: '🫙', brown_sugar: '🟤', vanilla: '🤍', maple: '🍁',
+    marshmallow: '☁️', candy: '🍬', sweet: '🍬',
+
+    // Chocolate & Roast
+    chocolate: '🍫', dark_chocolate: '🍫', milk_chocolate: '🍫',
+    cocoa: '🍫', cacao: '🍫', mocha: '☕', roasty: '🔥',
+    smoky: '💨', charcoal: '⬛', toasty: '🍞', burnt: '🔥',
+    tobacco: '🌿', leather: '🟫',
+
+    // Nuts & Grains
+    nutty: '🥜', almond: '🥜', hazelnut: '🥜', walnut: '🌰',
+    pecan: '🌰', peanut: '🥜', cashew: '🥜', malt: '🌾',
+    grain: '🌾', cereal: '🌾', oat: '🌾', bread: '🍞',
+    biscuit: '🍪', cookie: '🍪',
+
+    // Floral & Herbal
+    floral: '🌸', jasmine: '🌸', rose: '🌹', lavender: '💜',
+    hibiscus: '🌺', aroma: '🌺', fragrant: '🌺', elderflower: '🌼',
+    chamomile: '🌼', herbs: '🌿', green: '🌿', grassy: '🌿',
+    vegetal: '🥬', earthy: '🌍',
+
+    // Spice & Complex
+    spicy: '🌶️', cinnamon: '🫚', clove: '🫚', cardamom: '🫚',
+    pepper: '🌶️', anise: '⭐', licorice: '⭐', ginger: '🫚',
+
+    // Acidity & Body
+    acidic: '💧', bright: '✨', clean: '💧', crisp: '🧊',
+    intense: '🔥', bold: '💥', rich: '🏆', heavy: '⚖️',
+    light: '🪶', smooth: '🌊', velvety: '🌊', creamy: '🥛',
+    milky: '🥛', buttery: '🧈', silky: '🌊', winey: '🍷',
+
+    // Coffee-Specific Aromas
+    coffee: '☕', espresso: '☕', brew: '☕', roast: '🔥',
+    woody: '🪵', cedar: '🪵', oak: '🪵', pine: '🌲',
+    rubber: '⬛', musty: '🍂', fermented: '🫙', ferment: '🫙',
+    wine: '🍷', whiskey: '🥃', rum: '🥃', spirit: '🥃',
   };
-  return map[flavor.toLowerCase()] || '☕';
+  return map[flavor.toLowerCase().replace(/\s+/g, '_')] || '☕';
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
