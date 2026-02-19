@@ -26,6 +26,10 @@ const COLUMNS = [
   { key: 'extra',              label: 'Extra Info',     width: '150px' },
 ];
 
+const BREW_METHODS    = ['V60', 'Chemex', 'AeroPress', 'French Press', 'Espresso', 'Moka Pot', 'Cold Brew', 'Siphon', 'Other'];
+const PROCESSING_OPTS = ['Natural', 'Washed', 'Honey', 'Anaerobic', 'Wet-Hulled', 'Semi-Washed', 'Other'];
+const ROAST_OPTS      = ['Light', 'Light-Medium', 'Medium', 'Medium-Dark', 'Dark', 'Extra Dark'];
+
 const METHOD_COLORS = {
   'V60':          { bg: '#E8F5E9', color: '#2E7D32' },
   'Chemex':       { bg: '#E3F2FD', color: '#1565C0' },
@@ -49,35 +53,35 @@ const PROCESSING_COLORS = {
 };
 
 const ROAST_COLORS = {
-  'Light':       { bg: '#FFF9C4', color: '#827717' },
-  'Light-Medium':{ bg: '#FFE0B2', color: '#E65100' },
-  'Medium':      { bg: '#FFCCBC', color: '#BF360C' },
-  'Medium-Dark': { bg: '#D7CCC8', color: '#4E342E' },
-  'Dark':        { bg: '#5D4037', color: '#FFCCBC' },
-  'Extra Dark':  { bg: '#212121', color: '#BDBDBD' },
+  'Light':        { bg: '#FFF9C4', color: '#827717' },
+  'Light-Medium': { bg: '#FFE0B2', color: '#E65100' },
+  'Medium':       { bg: '#FFCCBC', color: '#BF360C' },
+  'Medium-Dark':  { bg: '#D7CCC8', color: '#4E342E' },
+  'Dark':         { bg: '#5D4037', color: '#FFCCBC' },
+  'Extra Dark':   { bg: '#212121', color: '#BDBDBD' },
 };
 
 const FLAVOR_PALETTE = {
-  citrus:     'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-  chocolate:  'linear-gradient(135deg, #8B4513 0%, #654321 100%)',
-  aroma:      'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
-  fruity:     'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
-  honey:      'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
-  raspberry:  'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
-  banana:     'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
-  green:      'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
-  apple:      'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
-  grape:      'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
-  mango:      'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
-  acidic:     'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
-  nutty:      'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)',
-  pineapple:  'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
-  tropical:   'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
-  floral:     'linear-gradient(135deg, #fd79a8 0%, #e84393 100%)',
-  caramel:    'linear-gradient(135deg, #D4A574 0%, #b8860b 100%)',
-  berry:      'linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%)',
-  intense:    'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
-  describe:   'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+  citrus:    'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+  chocolate: 'linear-gradient(135deg, #8B4513 0%, #654321 100%)',
+  aroma:     'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+  fruity:    'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+  honey:     'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+  raspberry: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+  banana:    'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
+  green:     'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+  apple:     'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+  grape:     'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+  mango:     'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+  acidic:    'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+  nutty:     'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)',
+  pineapple: 'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)',
+  tropical:  'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+  floral:    'linear-gradient(135deg, #fd79a8 0%, #e84393 100%)',
+  caramel:   'linear-gradient(135deg, #D4A574 0%, #b8860b 100%)',
+  berry:     'linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%)',
+  intense:   'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+  describe:  'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
 };
 
 const FLAVOR_EMOJI_MAP = {
@@ -87,6 +91,16 @@ const FLAVOR_EMOJI_MAP = {
   caramel: '🍮', nutty: '🥜', floral: '🌸', aroma: '🌺',
   acidic: '💧', intense: '🔥', green: '🌿', describe: '📝',
 };
+
+const MASTER_FLAVORS = [
+  'Citrus', 'Chocolate', 'Fruity', 'Berry', 'Raspberry', 'Banana', 'Apple',
+  'Grape', 'Mango', 'Pineapple', 'Tropical', 'Honey', 'Caramel', 'Nutty',
+  'Floral', 'Aroma', 'Acidic', 'Intense', 'Green', 'Jasmine', 'Rose',
+  'Vanilla', 'Spicy', 'Earthy', 'Herbal', 'Winey', 'Butter', 'Toffee',
+  'Peach', 'Apricot', 'Plum', 'Cherry', 'Blueberry', 'Strawberry',
+  'Lemon', 'Orange', 'Grapefruit', 'Lime', 'Almond', 'Hazelnut',
+  'Walnut', 'Smoke', 'Cedar', 'Sweet', 'Bright', 'Clean', 'Juicy',
+];
 
 const getFlavorStyle = (word) =>
   FLAVOR_PALETTE[word?.toLowerCase()] || 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)';
@@ -115,11 +129,7 @@ const formatDate = (dateStr) => {
 const ColorBadge = ({ value, colorMap }) => {
   if (!value) return <span style={s.dash}>—</span>;
   const palette = colorMap[value] || { bg: '#EFEBE9', color: '#4E342E' };
-  return (
-    <span style={{ ...s.badge, background: palette.bg, color: palette.color }}>
-      {value}
-    </span>
-  );
+  return <span style={{ ...s.badge, background: palette.bg, color: palette.color }}>{value}</span>;
 };
 
 const FlavorTagsCell = ({ tags }) => {
@@ -130,10 +140,10 @@ const FlavorTagsCell = ({ tags }) => {
       {tags.map((tag, i) => (
         <span key={i} style={{
           display: 'inline-flex', alignItems: 'center', gap: '3px',
-          background: getFlavorStyle(tag),
-          color: 'white', padding: '2px 7px',
-          borderRadius: '20px', fontSize: '11px', fontWeight: '700',
-          whiteSpace: 'nowrap', boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+          background: getFlavorStyle(tag), color: 'white',
+          padding: '2px 7px', borderRadius: '20px', fontSize: '11px',
+          fontWeight: '700', whiteSpace: 'nowrap',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
         }}>
           {getFlavorEmoji(tag)} {tag}
         </span>
@@ -156,94 +166,251 @@ const StatCard = ({ value, label, icon }) => (
   </div>
 );
 
-// ─── Edit Modal Component ─────────────────────────────────────────────────────
+// ─── Inline Flavor Tag Editor ─────────────────────────────────────────────────
 
-const BREW_METHODS    = ['V60', 'Chemex', 'AeroPress', 'French Press', 'Espresso', 'Moka Pot', 'Cold Brew', 'Siphon', 'Other'];
-const PROCESSING_OPTS = ['Natural', 'Washed', 'Honey', 'Anaerobic', 'Wet-Hulled', 'Semi-Washed', 'Other'];
-const ROAST_OPTS      = ['Light', 'Light-Medium', 'Medium', 'Medium-Dark', 'Dark', 'Extra Dark'];
+function FlavorTagEditor({ tags, onChange }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen]   = useState(false);
+  const inputRef          = React.useRef(null);
+  const wrapRef           = React.useRef(null);
+
+  const current = Array.isArray(tags) ? tags : [];
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    const matches = MASTER_FLAVORS.filter(f => f.toLowerCase().includes(q) && !current.includes(f));
+    const exact = MASTER_FLAVORS.find(f => f.toLowerCase() === q);
+    if (!exact && query.trim().length > 1 && !current.includes(query.trim()))
+      matches.push(`"${query.trim()}"`);
+    return matches.slice(0, 8);
+  }, [query, current]);
+
+  const add = (raw) => {
+    const flavor = raw.startsWith('"') ? raw.slice(1, -1) : raw;
+    const cap = flavor.charAt(0).toUpperCase() + flavor.slice(1).toLowerCase();
+    if (!current.includes(cap)) onChange([...current, cap]);
+    setQuery(''); setOpen(false); inputRef.current?.focus();
+  };
+
+  const remove = (f) => onChange(current.filter(t => t !== f));
+
+  useEffect(() => {
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div>
+      {/* Current tags */}
+      {current.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '8px' }}>
+          {current.map(f => (
+            <span key={f} style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              background: getFlavorStyle(f), color: 'white',
+              padding: '3px 9px', borderRadius: '20px',
+              fontSize: '11px', fontWeight: '700',
+            }}>
+              {getFlavorEmoji(f)} {f}
+              <button type="button" onClick={() => remove(f)} style={{
+                background: 'rgba(255,255,255,0.3)', border: 'none', borderRadius: '50%',
+                width: '14px', height: '14px', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', cursor: 'pointer', fontSize: '9px',
+                color: 'white', padding: 0, lineHeight: 1,
+              }}>✕</button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Search input */}
+      <div ref={wrapRef} style={{ position: 'relative' }}>
+        <input
+          ref={inputRef}
+          style={{ ...s.input, paddingLeft: '28px', fontSize: '12px' }}
+          placeholder="Search or add flavors…"
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => query && setOpen(true)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && filtered.length > 0) { e.preventDefault(); add(filtered[0]); }
+            if (e.key === 'Escape') setOpen(false);
+          }}
+          autoComplete="off"
+        />
+        <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none' }}>🔍</span>
+
+        {open && filtered.length > 0 && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 3px)', left: 0, right: 0,
+            background: 'white', border: '1px solid #D7CCC8', borderRadius: '6px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.1)', zIndex: 300, overflow: 'hidden',
+          }}>
+            {filtered.map((item, i) => {
+              const isCustom = item.startsWith('"');
+              const label = isCustom ? item.slice(1, -1) : item;
+              return (
+                <button key={i} type="button"
+                  onMouseDown={e => { e.preventDefault(); add(item); }}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '7px 12px', background: 'none', border: 'none',
+                    cursor: 'pointer', textAlign: 'left',
+                    borderBottom: i < filtered.length - 1 ? '1px solid #F5F0EC' : 'none',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FAF7F4'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                >
+                  <span style={{
+                    width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0,
+                    background: getFlavorStyle(label),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px',
+                  }}>{getFlavorEmoji(label)}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#2C1810' }}>
+                    {isCustom ? `Add "${label}"` : label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Edit Modal ───────────────────────────────────────────────────────────────
 
 const EditModal = ({ brew, onSave, onCancel, saving }) => {
   const [form, setForm] = useState({ ...brew });
+  const set = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const inputStyle = s.input;
-  const selectStyle = { ...s.input };
+  const Row = ({ children, full = false }) => (
+    <div style={{ gridColumn: full ? '1 / -1' : 'auto', ...s.inputGrp }}>{children}</div>
+  );
+  const Label = ({ children }) => <label style={s.editLabel}>{children}</label>;
 
   return (
     <div style={s.backdrop} onClick={e => e.target === e.currentTarget && onCancel()}>
-      <div style={{ ...s.editModal, maxWidth: '520px' }}>
-        <h3 style={{ margin: '0 0 20px 0', color: '#2C1810' }}>Edit Brew Record</h3>
-        <div style={{ ...s.formGrid, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-
-          <div style={{ gridColumn: '1 / -1', ...s.inputGrp }}>
-            <label style={s.label}>Beans</label>
-            <input style={inputStyle} value={form.beans || ''} onChange={e => handleChange('beans', e.target.value)} />
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Variety</label>
-            <input style={inputStyle} placeholder="Geisha, Bourbon…" value={form.variety || ''} onChange={e => handleChange('variety', e.target.value)} />
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Processing</label>
-            <select style={selectStyle} value={form.processing || ''} onChange={e => handleChange('processing', e.target.value)}>
-              <option value="">Select…</option>
-              {PROCESSING_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Roast Level</label>
-            <select style={selectStyle} value={form.roastLevel || ''} onChange={e => handleChange('roastLevel', e.target.value)}>
-              <option value="">Select…</option>
-              {ROAST_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Grinder</label>
-            <input style={inputStyle} value={form.grinder || ''} onChange={e => handleChange('grinder', e.target.value)} />
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Grind Setting</label>
-            <input style={inputStyle} value={form.grindSetting || ''} onChange={e => handleChange('grindSetting', e.target.value)} />
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Coffee Weight (g)</label>
-            <input style={inputStyle} type="number" min="0" step="0.1" value={form.groundCoffeeWeight || ''} onChange={e => handleChange('groundCoffeeWeight', e.target.value)} />
-          </div>
-
-          <div style={s.inputGrp}>
-            <label style={s.label}>Temp (°C)</label>
-            <input style={inputStyle} type="number" value={form.waterTemp || ''} onChange={e => handleChange('waterTemp', e.target.value)} />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', ...s.inputGrp }}>
-            <label style={s.label}>Tasting Notes</label>
-            <textarea style={{ ...inputStyle, height: '60px' }} value={form.notes || ''} onChange={e => handleChange('notes', e.target.value)} />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', ...s.inputGrp }}>
-            <label style={s.label}>Brewing Recipe</label>
-            <textarea style={{ ...inputStyle, height: '60px' }} placeholder="Pour schedule, bloom, ratios…" value={form.brewingRecipe || ''} onChange={e => handleChange('brewingRecipe', e.target.value)} />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', ...s.inputGrp }}>
-            <label style={s.label}>Extra Notes</label>
-            <textarea style={{ ...inputStyle, height: '50px' }} value={form.extra || ''} onChange={e => handleChange('extra', e.target.value)} />
-          </div>
-
+      <div style={s.editModal}>
+        <div style={s.editHeader}>
+          <span style={{ fontSize: '18px' }}>✏️</span>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#2C1810' }}>Edit Brew Record</h3>
+          <button onClick={onCancel} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#8D6E63' }}>✕</button>
         </div>
-        <div style={{ ...s.deleteModalActions, marginTop: '20px' }}>
+
+        <div style={s.editBody}>
+          <div style={s.editGrid}>
+
+            {/* ── Record ── */}
+            <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Record</div>
+
+            <Row>
+              <Label>Date</Label>
+              <input style={s.input} type="date" value={form.date || ''} onChange={e => set('date', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Beans</Label>
+              <input style={s.input} value={form.beans || ''} onChange={e => set('beans', e.target.value)} />
+            </Row>
+
+            {/* ── Bean Info ── */}
+            <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Bean Info</div>
+
+            <Row>
+              <Label>Variety</Label>
+              <input style={s.input} placeholder="Geisha, Bourbon…" value={form.variety || ''} onChange={e => set('variety', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Processing</Label>
+              <select style={s.input} value={form.processing || ''} onChange={e => set('processing', e.target.value)}>
+                <option value="">Select…</option>
+                {PROCESSING_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Row>
+            <Row>
+              <Label>Roast Level</Label>
+              <select style={s.input} value={form.roastLevel || ''} onChange={e => set('roastLevel', e.target.value)}>
+                <option value="">Select…</option>
+                {ROAST_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Row>
+
+            {/* ── Brew Setup ── */}
+            <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Brew Setup</div>
+
+            <Row>
+              <Label>Brew Method</Label>
+              <select style={s.input} value={form.method || ''} onChange={e => set('method', e.target.value)}>
+                <option value="">Select…</option>
+                {BREW_METHODS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Row>
+            <Row>
+              <Label>Grinder</Label>
+              <input style={s.input} value={form.grinder || ''} onChange={e => set('grinder', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Grind Setting</Label>
+              <input style={s.input} value={form.grindSetting || ''} onChange={e => set('grindSetting', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Coffee (g)</Label>
+              <input style={s.input} type="number" min="0" step="0.1" value={form.groundCoffeeWeight || ''} onChange={e => set('groundCoffeeWeight', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Temp (°C)</Label>
+              <input style={s.input} type="number" value={form.waterTemp || ''} onChange={e => set('waterTemp', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Water (ml)</Label>
+              <input style={s.input} type="number" value={form.waterIn || ''} onChange={e => set('waterIn', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Brew Time</Label>
+              <input style={s.input} placeholder="2:30" value={form.brewTime || ''} onChange={e => set('brewTime', e.target.value)} />
+            </Row>
+            <Row>
+              <Label>Days Post Roast</Label>
+              <input style={s.input} type="number" value={form.daysPast || ''} onChange={e => set('daysPast', e.target.value)} />
+            </Row>
+
+            {/* ── Tasting ── */}
+            <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Tasting</div>
+
+            <Row full>
+              <Label>Flavor Tags</Label>
+              <FlavorTagEditor
+                tags={form.flavorTags}
+                onChange={tags => set('flavorTags', tags)}
+              />
+            </Row>
+            <Row full>
+              <Label>Tasting Notes</Label>
+              <textarea style={{ ...s.input, height: '64px', resize: 'vertical' }} value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
+            </Row>
+
+            {/* ── Recipe ── */}
+            <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Recipe & Notes</div>
+
+            <Row full>
+              <Label>Brewing Recipe</Label>
+              <textarea style={{ ...s.input, height: '64px', resize: 'vertical' }} placeholder="Pour schedule, bloom, ratios…" value={form.brewingRecipe || ''} onChange={e => set('brewingRecipe', e.target.value)} />
+            </Row>
+            <Row full>
+              <Label>Extra Notes</Label>
+              <textarea style={{ ...s.input, height: '50px', resize: 'vertical' }} value={form.extra || ''} onChange={e => set('extra', e.target.value)} />
+            </Row>
+
+          </div>
+        </div>
+
+        <div style={s.editFooter}>
           <button style={s.cancelBtn} onClick={onCancel} disabled={saving}>Cancel</button>
           <button style={s.saveBtn} onClick={() => onSave(form)} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -285,12 +452,10 @@ function RawData() {
   const [sortKey, setSortKey]           = useState('date');
   const [sortDir, setSortDir]           = useState('desc');
   const [methodFilter, setMethodFilter] = useState('All');
-
-  const [brewToDelete, setBrewToDelete]   = useState(null);
-  const [brewToEdit, setBrewToEdit]       = useState(null);
+  const [brewToDelete, setBrewToDelete] = useState(null);
+  const [brewToEdit, setBrewToEdit]     = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [deleteError, setDeleteError]     = useState(null);
-  const [showFavOnly, setShowFavOnly]     = useState(false);
+  const [showFavOnly, setShowFavOnly]   = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -299,11 +464,9 @@ function RawData() {
         if (user) {
           setCurrentUid(user.uid);
           const snapshot = await getDocs(collection(db, 'users', user.uid, 'brews'));
-          const firestoreDocs = snapshot.docs.map(d => ({
-            id: d.id, _source: 'firestore', ...d.data(),
-          }));
-          firestoreDocs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-          setBrews(firestoreDocs);
+          const docs = snapshot.docs.map(d => ({ id: d.id, _source: 'firestore', ...d.data() }));
+          docs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+          setBrews(docs);
         } else {
           setCurrentUid(null);
           setBrews([]);
@@ -324,11 +487,8 @@ function RawData() {
       await deleteDoc(doc(db, 'users', currentUid, 'brews', brewToDelete.id));
       setBrews(prev => prev.filter(b => b.id !== brewToDelete.id));
       setBrewToDelete(null);
-    } catch (err) {
-      setDeleteError('Failed to delete.');
-    } finally {
-      setActionLoading(false);
-    }
+    } catch { /* silent */ }
+    finally { setActionLoading(false); }
   };
 
   const handleUpdateBrew = async (updatedData) => {
@@ -337,19 +497,21 @@ function RawData() {
     try {
       const brewRef = doc(db, 'users', currentUid, 'brews', brewToEdit.id);
       const { id, _source, ...payload } = updatedData;
-      if (payload.groundCoffeeWeight !== undefined && payload.groundCoffeeWeight !== '') {
-        payload.groundCoffeeWeight = Number(payload.groundCoffeeWeight);
-      } else {
-        payload.groundCoffeeWeight = null;
+
+      // Coerce numeric fields
+      ['groundCoffeeWeight', 'waterTemp', 'waterIn', 'daysPast'].forEach(k => {
+        payload[k] = payload[k] !== '' && payload[k] != null ? Number(payload[k]) : null;
+      });
+      // Ensure flavorTags is array or null
+      if (!Array.isArray(payload.flavorTags) || payload.flavorTags.length === 0) {
+        payload.flavorTags = null;
       }
+
       await updateDoc(brewRef, payload);
       setBrews(prev => prev.map(b => b.id === brewToEdit.id ? { ...b, ...updatedData } : b));
       setBrewToEdit(null);
-    } catch (err) {
-      alert('Failed to update brew.');
-    } finally {
-      setActionLoading(false);
-    }
+    } catch { alert('Failed to update brew.'); }
+    finally { setActionLoading(false); }
   };
 
   const handleToggleFavorite = async (brew) => {
@@ -358,21 +520,21 @@ function RawData() {
     setBrews(prev => prev.map(b => b.id === brew.id ? { ...b, favorite: newVal } : b));
     try {
       await updateDoc(doc(db, 'users', currentUid, 'brews', brew.id), { favorite: newVal });
-    } catch (err) {
+    } catch {
       setBrews(prev => prev.map(b => b.id === brew.id ? { ...b, favorite: brew.favorite } : b));
     }
   };
 
   const stats = useMemo(() => {
     if (brews.length === 0) return null;
-    const methods = brews.map(b => b.method).filter(Boolean);
+    const methods  = brews.map(b => b.method).filter(Boolean);
     const methodFreq = methods.reduce((acc, m) => { acc[m] = (acc[m] || 0) + 1; return acc; }, {});
     const topMethod = Object.entries(methodFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
-    const beans = [...new Set(brews.map(b => b.beans).filter(Boolean))];
-    const temps = brews.map(b => b.waterTemp).filter(v => v && v !== '?');
-    const avgTemp = temps.length ? Math.round(temps.reduce((a, b) => a + Number(b), 0) / temps.length) : null;
-    const allTags = brews.flatMap(b => Array.isArray(b.flavorTags) ? b.flavorTags : []);
-    const tagFreq = allTags.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
+    const beans    = [...new Set(brews.map(b => b.beans).filter(Boolean))];
+    const temps    = brews.map(b => b.waterTemp).filter(v => v && v !== '?');
+    const avgTemp  = temps.length ? Math.round(temps.reduce((a, b) => a + Number(b), 0) / temps.length) : null;
+    const allTags  = brews.flatMap(b => Array.isArray(b.flavorTags) ? b.flavorTags : []);
+    const tagFreq  = allTags.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
     const topFlavor = Object.entries(tagFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
     return { total: brews.length, uniqueBeans: beans.length, topMethod, avgTemp, topFlavor };
   }, [brews]);
@@ -389,8 +551,7 @@ function RawData() {
     if (search.trim()) {
       const q = search.toLowerCase();
       rows = rows.filter(b => {
-        const tagMatch = Array.isArray(b.flavorTags) &&
-          b.flavorTags.some(t => t.toLowerCase().includes(q));
+        const tagMatch = Array.isArray(b.flavorTags) && b.flavorTags.some(t => t.toLowerCase().includes(q));
         return tagMatch || [b.beans, b.method, b.notes, b.grindSetting, b.grinder, b.extra, b.variety, b.processing, b.roastLevel, b.brewingRecipe]
           .some(v => v && String(v).toLowerCase().includes(q));
       });
@@ -398,11 +559,8 @@ function RawData() {
     rows.sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
       if (av == null) av = ''; if (bv == null) bv = '';
-      if (typeof av === 'number' && typeof bv === 'number')
-        return sortDir === 'asc' ? av - bv : bv - av;
-      return sortDir === 'asc'
-        ? String(av).localeCompare(String(bv))
-        : String(bv).localeCompare(String(av));
+      if (typeof av === 'number' && typeof bv === 'number') return sortDir === 'asc' ? av - bv : bv - av;
+      return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
     });
     return rows;
   }, [brews, search, methodFilter, sortKey, sortDir, showFavOnly]);
@@ -436,19 +594,14 @@ function RawData() {
 
       {stats && (
         <div style={s.statsRow}>
-          <StatCard value={stats.total}    label="Total Brews"      icon="☕" />
+          <StatCard value={stats.total}       label="Total Brews"    icon="☕" />
           <StatCard value={stats.uniqueBeans} label="Unique Origins" icon="🌍" />
-          <StatCard value={stats.topMethod}   label="Fav. Method"   icon="🏆" />
+          <StatCard value={stats.topMethod}   label="Fav. Method"    icon="🏆" />
           <StatCard value={stats.avgTemp ? `${stats.avgTemp}°C` : '—'} label="Avg. Temp" icon="🌡️" />
           {stats.topFlavor && (
             <StatCard
               value={
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  background: getFlavorStyle(stats.topFlavor),
-                  color: 'white', padding: '2px 10px',
-                  borderRadius: '12px', fontSize: '13px', fontWeight: '700',
-                }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: getFlavorStyle(stats.topFlavor), color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>
                   {getFlavorEmoji(stats.topFlavor)} {stats.topFlavor}
                 </span>
               }
@@ -463,20 +616,10 @@ function RawData() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={s.searchWrap}>
             <span style={s.searchIcon}>🔍</span>
-            <input
-              style={s.searchInput}
-              placeholder="Search beans, variety, process, recipe…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+            <input style={s.searchInput} placeholder="Search beans, variety, process, recipe…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <button
-            style={{
-              ...s.filterPill,
-              display: 'flex', alignItems: 'center', gap: '5px',
-              ...(showFavOnly ? { background: '#F59E0B', color: 'white', border: '1px solid #F59E0B' } : {}),
-              whiteSpace: 'nowrap',
-            }}
+            style={{ ...s.filterPill, display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', ...(showFavOnly ? { background: '#F59E0B', color: 'white', border: '1px solid #F59E0B' } : {}) }}
             onClick={() => setShowFavOnly(v => !v)}
           >
             <span style={{ fontSize: '13px' }}>{showFavOnly ? '★' : '☆'}</span> Favourites
@@ -484,11 +627,7 @@ function RawData() {
         </div>
         <div style={s.filterRow}>
           {allMethods.map(m => (
-            <button
-              key={m}
-              style={{ ...s.filterPill, ...(methodFilter === m ? s.filterPillActive : {}) }}
-              onClick={() => setMethodFilter(m)}
-            >{m}</button>
+            <button key={m} style={{ ...s.filterPill, ...(methodFilter === m ? s.filterPillActive : {}) }} onClick={() => setMethodFilter(m)}>{m}</button>
           ))}
         </div>
       </div>
@@ -508,17 +647,9 @@ function RawData() {
           <tbody>
             {filtered.map((brew, idx) => (
               <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
-                {/* Favorite */}
                 <td style={{ ...s.td, ...s.tdFav }}>
                   <button
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      fontSize: '18px', lineHeight: 1, padding: '2px',
-                      color: brew.favorite ? '#F59E0B' : '#D7CCC8',
-                      transition: 'color 0.15s, transform 0.15s',
-                      transform: brew.favorite ? 'scale(1.15)' : 'scale(1)',
-                      filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none',
-                    }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none' }}
                     title={brew.favorite ? 'Unfavourite' : 'Favourite'}
                     onClick={() => handleToggleFavorite(brew)}
                   >
@@ -542,7 +673,6 @@ function RawData() {
                 <td style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? <span style={s.noteText}>{brew.notes}</span> : '—'}</td>
                 <td style={{ ...s.td, ...s.tdNotes }}>{brew.brewingRecipe ? <span style={s.noteText}>{brew.brewingRecipe}</span> : '—'}</td>
                 <td style={{ ...s.td, ...s.tdNotes }}>{fmt(brew.extra)}</td>
-                {/* Actions */}
                 <td style={s.td}>
                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                     <button style={s.editBtn}   onClick={() => setBrewToEdit(brew)}>✏️</button>
@@ -565,6 +695,8 @@ function RawData() {
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const s = {
   root:        { height: '100%', display: 'flex', flexDirection: 'column', background: '#FAF7F4', fontFamily: 'sans-serif', overflow: 'hidden' },
   header:      { display: 'flex', padding: '18px 24px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
@@ -578,7 +710,7 @@ const s = {
   statLabel:   { fontSize: '9px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase' },
   toolbar:     { padding: '12px 24px', background: '#FFFDF9', borderBottom: '1px solid #EFEBE9', display: 'flex', flexDirection: 'column', gap: '10px' },
   searchWrap:  { position: 'relative', maxWidth: '360px' },
-  searchInput: { width: '100%', padding: '8px 12px 8px 30px', border: '1px solid #D7CCC8', borderRadius: '6px' },
+  searchInput: { width: '100%', padding: '8px 12px 8px 30px', border: '1px solid #D7CCC8', borderRadius: '6px', fontSize: '13px' },
   searchIcon:  { position: 'absolute', left: '10px', top: '8px', fontSize: '12px' },
   filterRow:   { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   filterPill:  { padding: '4px 12px', borderRadius: '20px', border: '1px solid #D7CCC8', fontSize: '11px', cursor: 'pointer', background: 'none' },
@@ -596,21 +728,30 @@ const s = {
   tdTags:      { whiteSpace: 'normal', verticalAlign: 'middle', padding: '6px 16px' },
   editBtn:     { background: '#E3F2FD', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
   deleteBtn:   { background: '#FFEBEE', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
+
+  // ── Edit modal ──
   backdrop:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
-  deleteModal: { background: 'white', padding: '24px', borderRadius: '12px', textAlign: 'center', maxWidth: '300px' },
+  editModal:   { background: 'white', borderRadius: '12px', width: '560px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden' },
+  editHeader:  { display: 'flex', alignItems: 'center', gap: '10px', padding: '16px 20px', borderBottom: '1px solid #EFEBE9', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
+  editBody:    { flex: 1, overflowY: 'auto', padding: '20px' },
+  editGrid:    { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
+  editSection: { fontSize: '10px', fontWeight: '800', color: '#A1887F', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid #EFEBE9', paddingBottom: '4px', marginTop: '4px' },
+  editFooter:  { display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '14px 20px', borderTop: '1px solid #EFEBE9', background: '#FAF7F4' },
+  editLabel:   { fontSize: '11px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', display: 'block' },
+  inputGrp:    { display: 'flex', flexDirection: 'column' },
+  input:       { padding: '8px 10px', border: '1px solid #D7CCC8', borderRadius: '6px', fontSize: '13px', fontFamily: 'sans-serif', color: '#2C1810', background: '#FAFAFA', outline: 'none', boxSizing: 'border-box', width: '100%' },
+  saveBtn:     { padding: '9px 20px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '13px' },
+  cancelBtn:   { padding: '9px 20px', background: 'none', border: '1px solid #D7CCC8', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#8D6E63' },
+
+  // ── Delete modal ──
+  deleteModal:      { background: 'white', padding: '24px', borderRadius: '12px', textAlign: 'center', maxWidth: '300px' },
   deleteModalIcon:  { fontSize: '32px', marginBottom: '12px' },
   deleteModalTitle: { fontSize: '16px', fontWeight: '700', marginBottom: '8px' },
   deleteModalSub:   { fontSize: '13px', color: '#5D4037', marginBottom: '8px' },
   deleteModalNote:  { fontSize: '11px', color: '#B71C1C', marginBottom: '20px' },
   deleteModalActions: { display: 'flex', gap: '12px', justifyContent: 'center' },
-  editModal:   { background: 'white', padding: '24px', borderRadius: '12px', width: '520px', maxHeight: '90vh', overflowY: 'auto' },
-  formGrid:    { display: 'flex', flexDirection: 'column', gap: '12px' },
-  inputGrp:    { display: 'flex', flexDirection: 'column', gap: '4px' },
-  label:       { fontSize: '12px', fontWeight: '700', color: '#8D6E63' },
-  input:       { padding: '8px', border: '1px solid #D7CCC8', borderRadius: '4px', fontSize: '13px', fontFamily: 'sans-serif' },
-  saveBtn:     { padding: '9px 20px', background: '#2E7D32', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' },
-  cancelBtn:   { padding: '9px 20px', background: 'none', border: '1px solid #D7CCC8', borderRadius: '6px', cursor: 'pointer' },
-  deleteConfirmBtn: { padding: '9px 20px', background: '#C62828', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700' },
+  deleteConfirmBtn: { padding: '9px 20px', background: '#C62828', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' },
+
   badge:       { padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' },
   dateCell:    { fontSize: '12px', fontWeight: '600' },
   dash:        { color: '#BCAAA4' },

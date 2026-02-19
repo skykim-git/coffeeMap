@@ -3,7 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import '../styles/ByNotes.css';
-import { buildRegionTree } from './BrazilMap';
+import { buildRegionTree } from './shared/utils';
 
 // ─── Stop words ───────────────────────────────────────────────────────────────
 const stopWords = new Set([
