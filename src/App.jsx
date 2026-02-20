@@ -6,13 +6,17 @@ import BrazilMap from './components/BrazilMap';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // add this
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoading(false); // add this
     });
     return () => unsubscribe();
   }, []);
+
+  if (loading) return <div>Loading...</div>; // add this
 
   return (
     <div>

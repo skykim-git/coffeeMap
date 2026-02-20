@@ -9,6 +9,7 @@ import { signOut, onAuthStateChanged } from 'firebase/auth';
 
 import ByNotes from './ByNotes';
 import RawData from './RawData';
+import SavedBeansTab from './brew/SavedBeansTab';
 
 import { buildRegionTree, parseCoord } from './shared/utils';
 import { levelIcon } from './map/mapIcons';
@@ -35,6 +36,9 @@ export default function BrazilMap() {
   const [activeTab, setActiveTab]         = useState('coffee-map');
   const [closePopup, setClosePopup]       = useState(false);
   const [showBrewModal, setShowBrewModal] = useState(false);
+
+  // ── Bean filter — set by SavedBeansTab, consumed by RawData ───────────────
+  const [beanFilter, setBeanFilter] = useState(null);
 
   // ── Data fetching ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -89,7 +93,6 @@ export default function BrazilMap() {
   const brewedCountries = useMemo(() => allRegionDocs.filter(d => d.level === 'country' && brewedDocIds.has(d.id)).length, [allRegionDocs, brewedDocIds]);
   const brewedRegions   = useMemo(() => allRegionDocs.filter(d => d.level !== 'country' && brewedDocIds.has(d.id)).length, [allRegionDocs, brewedDocIds]);
 
-  // fitBounds: gather all descendant coordinates of selectedDoc for flyToBounds
   const selectedFitBounds = useMemo(() => {
     if (!selectedDoc) return null;
     const coords = [];
@@ -174,6 +177,30 @@ export default function BrazilMap() {
     });
   };
 
+  // ── Navigate from RawData → map marker ────────────────────────────────────
+  const handleNavigateToRegion = (regionDoc) => {
+    setActiveTab('coffee-map');
+    setTimeout(() => {
+      handleDocClick(regionDoc);
+    }, 100);
+  };
+
+  // ── Navigate from SavedBeansTab → RawData with filter ─────────────────────
+  const handleSelectBean = (bean) => {
+    setBeanFilter(bean.name);
+    setActiveTab('raw-data');
+  };
+
+  const handleClearBeanFilter = () => {
+    setBeanFilter(null);
+  };
+
+  // Clear filter when leaving raw-data tab so it doesn't persist unexpectedly
+  const handleSetActiveTab = (tab) => {
+    if (tab !== 'raw-data') setBeanFilter(null);
+    setActiveTab(tab);
+  };
+
   // ── Tab content ────────────────────────────────────────────────────────────
   const renderTabContent = () => {
     switch (activeTab) {
@@ -231,10 +258,29 @@ export default function BrazilMap() {
             </MapContainer>
           </div>
         );
+
       case 'by-notes':
         return <div className="map-wrapper"><ByNotes allRegionDocs={allRegionDocs} /></div>;
+
       case 'raw-data':
-        return <div className="map-wrapper"><RawData /></div>;
+        return (
+          <div className="map-wrapper">
+            <RawData
+              allRegionDocs={allRegionDocs}
+              onNavigateToRegion={handleNavigateToRegion}
+              beanFilter={beanFilter}
+              onClearBeanFilter={handleClearBeanFilter}
+            />
+          </div>
+        );
+
+      case 'saved-beans':
+        return (
+          <div className="map-wrapper">
+            <SavedBeansTab onSelectBean={handleSelectBean} />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -263,7 +309,7 @@ export default function BrazilMap() {
         brewedCountries={brewedCountries}
         totalOnMap={allRegionDocs.length}
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleSetActiveTab}
         tastedRegionsList={tastedRegionsList}
         onRegionClick={handleDocClick}
         brewsLoading={brewsLoading}
@@ -277,6 +323,7 @@ export default function BrazilMap() {
           onBack={handleBackToMap}
           onAddBrew={() => setShowBrewModal(true)}
           onToggleSidebar={() => setSidebarOpen(v => !v)}
+          setActiveTab={handleSetActiveTab}
         />
         {renderTabContent()}
       </main>

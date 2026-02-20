@@ -4,9 +4,66 @@ import { auth } from '../../firebase/config';
 
 export function LoadingScreen() {
   return (
-    <div style={{ width:'100%', height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg, #6F4E37 0%, #432818 100%)', gap:'16px' }}>
-      <div style={{ fontSize:'48px' }}>☕</div>
-      <div style={{ color:'rgba(255,255,255,0.9)', fontSize:'16px', fontWeight:'600' }}>Loading your coffee map...</div>
+    <div style={{
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #6F4E37 0%, #432818 100%)',
+      gap: '24px',
+    }}>
+      <style>{`
+        @keyframes breathe {
+          0%, 100% { opacity: 0.9; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.92); }
+        }
+        @keyframes dots {
+          0%, 20% { content: ''; }
+          40% { content: '.'; }
+          60% { content: '..'; }
+          80%, 100% { content: '...'; }
+        }
+        .loading-icon {
+          font-size: 40px;
+          animation: breathe 1.8s ease-in-out infinite;
+        }
+        .loading-bar-track {
+          width: 120px;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 999px;
+          overflow: hidden;
+        }
+        @keyframes slide {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        .loading-bar-fill {
+          width: 50%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.7);
+          border-radius: 999px;
+          animation: slide 1.4s ease-in-out infinite;
+        }
+      `}</style>
+
+      <div className="loading-icon">☕</div>
+
+      <div style={{
+        color: 'rgba(255, 255, 255, 0.75)',
+        fontSize: '13px',
+        fontWeight: '500',
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+      }}>
+        Loading your map
+      </div>
+
+      <div className="loading-bar-track">
+        <div className="loading-bar-fill" />
+      </div>
     </div>
   );
 }
@@ -52,9 +109,10 @@ export function Sidebar({ open, onClose, totalBrews, brewedRegions, brewedCountr
         </div>
 
         <div className="nav-tabs">
-          <button className={`sidebar-tab ${activeTab === 'coffee-map' ? 'active' : ''}`} onClick={() => setActiveTab('coffee-map')}><span className="tab-icon">🗺️</span>Coffee Map</button>
-          <button className={`sidebar-tab ${activeTab === 'by-notes'   ? 'active' : ''}`} onClick={() => setActiveTab('by-notes')}><span className="tab-icon">📝</span>Tasting Notes</button>
-          <button className={`sidebar-tab ${activeTab === 'raw-data'   ? 'active' : ''}`} onClick={() => setActiveTab('raw-data')}><span className="tab-icon">📊</span>Brew Data</button>
+          <button className={`sidebar-tab ${activeTab === 'coffee-map'   ? 'active' : ''}`} onClick={() => setActiveTab('coffee-map')}><span className="tab-icon">🗺️</span>Coffee Map</button>
+          <button className={`sidebar-tab ${activeTab === 'by-notes'     ? 'active' : ''}`} onClick={() => setActiveTab('by-notes')}><span className="tab-icon">📝</span>Tasting Notes</button>
+          <button className={`sidebar-tab ${activeTab === 'raw-data'     ? 'active' : ''}`} onClick={() => setActiveTab('raw-data')}><span className="tab-icon">📊</span>Brew Data</button>
+          <button className={`sidebar-tab ${activeTab === 'saved-beans'  ? 'active' : ''}`} onClick={() => setActiveTab('saved-beans')}><span className="tab-icon">☕</span>Saved Beans</button>
         </div>
 
         <div className="regions-list">

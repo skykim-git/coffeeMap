@@ -19,7 +19,7 @@ const COLUMNS = [
   { key: 'waterTemp',          label: 'Temp',           width: '60px'  },
   { key: 'waterIn',            label: 'Water',          width: '70px'  },
   { key: 'brewTime',           label: 'Time',           width: '70px'  },
-  { key: 'daysPast',           label: 'Age',            width: '60px'  },
+  { key: 'roastingDate',       label: 'Roast Date',     width: '90px'  },
   { key: 'flavorTags',         label: 'Flavors',        width: '220px' },
   { key: 'notes',              label: 'Tasting Notes',  width: '180px' },
   { key: 'brewingRecipe',      label: 'Recipe',         width: '180px' },
@@ -124,6 +124,42 @@ const formatDate = (dateStr) => {
   } catch { return String(dateStr); }
 };
 
+// ─── No Region Modal ──────────────────────────────────────────────────────────
+
+const NoRegionModal = ({ brew, onClose }) => (
+  <div style={s.backdrop} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div style={s.noRegionModal}>
+      <div style={s.noRegionHeader}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '20px' }}>🌍</span>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#F5E6D3' }}>Bean Origin</div>
+            <div style={{ fontSize: '11px', color: 'rgba(245,230,211,0.6)', marginTop: '1px' }}>{brew.beans}</div>
+          </div>
+        </div>
+        <button onClick={onClose} style={s.noRegionCloseBtn}>✕</button>
+      </div>
+      <div style={s.noRegionBody}>
+        <div style={{ fontSize: '44px', marginBottom: '12px', opacity: 0.35 }}>🗺️</div>
+        <div style={{ fontSize: '15px', fontWeight: '800', color: '#2C1810', marginBottom: '8px' }}>
+          No region linked to this brew
+        </div>
+        <div style={{ fontSize: '13px', color: '#8D6E63', lineHeight: '1.6', maxWidth: '280px', marginBottom: '16px' }}>
+          Link this brew to a region on the map by editing it and selecting a location via <strong>Add Brew</strong> on the map tab.
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+          {['Ethiopia', 'Kenya', 'Colombia', 'Guatemala', 'Brazil', 'Panama', 'Yemen', 'Indonesia'].map(c => (
+            <span key={c} style={{ padding: '3px 10px', background: '#F5F0EC', borderRadius: '20px', fontSize: '11px', color: '#5D4037', fontWeight: '600' }}>{c}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding: '14px 20px', borderTop: '1px solid #EFEBE9', display: 'flex', justifyContent: 'flex-end' }}>
+        <button style={s.cancelBtn} onClick={onClose}>Close</button>
+      </div>
+    </div>
+  </div>
+);
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const ColorBadge = ({ value, colorMap }) => {
@@ -166,6 +202,22 @@ const StatCard = ({ value, label, icon }) => (
   </div>
 );
 
+// ─── Bean Filter Banner ───────────────────────────────────────────────────────
+
+const BeanFilterBanner = ({ beanName, onClear }) => (
+  <div style={s.filterBanner}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span style={{ fontSize: '14px' }}>☕</span>
+      <span style={s.filterBannerText}>
+        Showing brews for <strong>{beanName}</strong>
+      </span>
+    </div>
+    <button onClick={onClear} style={s.filterBannerClear} title="Clear filter">
+      ✕ Show all brews
+    </button>
+  </div>
+);
+
 // ─── Inline Flavor Tag Editor ─────────────────────────────────────────────────
 
 function FlavorTagEditor({ tags, onChange }) {
@@ -203,7 +255,6 @@ function FlavorTagEditor({ tags, onChange }) {
 
   return (
     <div>
-      {/* Current tags */}
       {current.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '8px' }}>
           {current.map(f => (
@@ -224,8 +275,6 @@ function FlavorTagEditor({ tags, onChange }) {
           ))}
         </div>
       )}
-
-      {/* Search input */}
       <div ref={wrapRef} style={{ position: 'relative' }}>
         <input
           ref={inputRef}
@@ -241,7 +290,6 @@ function FlavorTagEditor({ tags, onChange }) {
           autoComplete="off"
         />
         <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none' }}>🔍</span>
-
         {open && filtered.length > 0 && (
           <div style={{
             position: 'absolute', top: 'calc(100% + 3px)', left: 0, right: 0,
@@ -300,13 +348,9 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
           <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#2C1810' }}>Edit Brew Record</h3>
           <button onClick={onCancel} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#8D6E63' }}>✕</button>
         </div>
-
         <div style={s.editBody}>
           <div style={s.editGrid}>
-
-            {/* ── Record ── */}
             <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Record</div>
-
             <Row>
               <Label>Date</Label>
               <input style={s.input} type="date" value={form.date || ''} onChange={e => set('date', e.target.value)} />
@@ -315,10 +359,7 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
               <Label>Beans</Label>
               <input style={s.input} value={form.beans || ''} onChange={e => set('beans', e.target.value)} />
             </Row>
-
-            {/* ── Bean Info ── */}
             <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Bean Info</div>
-
             <Row>
               <Label>Variety</Label>
               <input style={s.input} placeholder="Geisha, Bourbon…" value={form.variety || ''} onChange={e => set('variety', e.target.value)} />
@@ -337,10 +378,11 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
                 {ROAST_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </Row>
-
-            {/* ── Brew Setup ── */}
+            <Row>
+              <Label>Roasting Date</Label>
+              <input style={s.input} type="date" value={form.roastingDate || ''} onChange={e => set('roastingDate', e.target.value)} />
+            </Row>
             <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Brew Setup</div>
-
             <Row>
               <Label>Brew Method</Label>
               <select style={s.input} value={form.method || ''} onChange={e => set('method', e.target.value)}>
@@ -372,29 +414,16 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
               <Label>Brew Time</Label>
               <input style={s.input} placeholder="2:30" value={form.brewTime || ''} onChange={e => set('brewTime', e.target.value)} />
             </Row>
-            <Row>
-              <Label>Days Post Roast</Label>
-              <input style={s.input} type="number" value={form.daysPast || ''} onChange={e => set('daysPast', e.target.value)} />
-            </Row>
-
-            {/* ── Tasting ── */}
             <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Tasting</div>
-
             <Row full>
               <Label>Flavor Tags</Label>
-              <FlavorTagEditor
-                tags={form.flavorTags}
-                onChange={tags => set('flavorTags', tags)}
-              />
+              <FlavorTagEditor tags={form.flavorTags} onChange={tags => set('flavorTags', tags)} />
             </Row>
             <Row full>
               <Label>Tasting Notes</Label>
               <textarea style={{ ...s.input, height: '64px', resize: 'vertical' }} value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
             </Row>
-
-            {/* ── Recipe ── */}
             <div style={{ gridColumn: '1 / -1', ...s.editSection }}>Recipe & Notes</div>
-
             <Row full>
               <Label>Brewing Recipe</Label>
               <textarea style={{ ...s.input, height: '64px', resize: 'vertical' }} placeholder="Pour schedule, bloom, ratios…" value={form.brewingRecipe || ''} onChange={e => set('brewingRecipe', e.target.value)} />
@@ -403,10 +432,8 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
               <Label>Extra Notes</Label>
               <textarea style={{ ...s.input, height: '50px', resize: 'vertical' }} value={form.extra || ''} onChange={e => set('extra', e.target.value)} />
             </Row>
-
           </div>
         </div>
-
         <div style={s.editFooter}>
           <button style={s.cancelBtn} onClick={onCancel} disabled={saving}>Cancel</button>
           <button style={s.saveBtn} onClick={() => onSave(form)} disabled={saving}>
@@ -443,7 +470,7 @@ const DeleteModal = ({ brew, onConfirm, onCancel, deleting }) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-function RawData() {
+function RawData({ onNavigateToRegion, allRegionDocs = [], beanFilter = null, onClearBeanFilter }) {
   const [brews, setBrews]               = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
@@ -454,8 +481,23 @@ function RawData() {
   const [methodFilter, setMethodFilter] = useState('All');
   const [brewToDelete, setBrewToDelete] = useState(null);
   const [brewToEdit, setBrewToEdit]     = useState(null);
+  const [brewNoRegion, setBrewNoRegion] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showFavOnly, setShowFavOnly]   = useState(false);
+
+  // Reset method filter + search when beanFilter changes
+  useEffect(() => {
+    if (beanFilter) {
+      setSearch('');
+      setMethodFilter('All');
+    }
+  }, [beanFilter]);
+
+  const regionById = useMemo(() => {
+    const map = {};
+    allRegionDocs.forEach(d => { map[d.id] = d; });
+    return map;
+  }, [allRegionDocs]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -497,16 +539,12 @@ function RawData() {
     try {
       const brewRef = doc(db, 'users', currentUid, 'brews', brewToEdit.id);
       const { id, _source, ...payload } = updatedData;
-
-      // Coerce numeric fields
-      ['groundCoffeeWeight', 'waterTemp', 'waterIn', 'daysPast'].forEach(k => {
+      ['groundCoffeeWeight', 'waterTemp', 'waterIn'].forEach(k => {
         payload[k] = payload[k] !== '' && payload[k] != null ? Number(payload[k]) : null;
       });
-      // Ensure flavorTags is array or null
       if (!Array.isArray(payload.flavorTags) || payload.flavorTags.length === 0) {
         payload.flavorTags = null;
       }
-
       await updateDoc(brewRef, payload);
       setBrews(prev => prev.map(b => b.id === brewToEdit.id ? { ...b, ...updatedData } : b));
       setBrewToEdit(null);
@@ -523,6 +561,19 @@ function RawData() {
     } catch {
       setBrews(prev => prev.map(b => b.id === brew.id ? { ...b, favorite: brew.favorite } : b));
     }
+  };
+
+  const handleBeanClick = (brew) => {
+    if (!brew.regionRef) {
+      setBrewNoRegion(brew);
+      return;
+    }
+    const regionDoc = regionById[brew.regionRef];
+    if (!regionDoc) {
+      setBrewNoRegion(brew);
+      return;
+    }
+    onNavigateToRegion?.(regionDoc);
   };
 
   const stats = useMemo(() => {
@@ -546,6 +597,12 @@ function RawData() {
 
   const filtered = useMemo(() => {
     let rows = [...brews];
+
+    // ── Bean filter from SavedBeansTab ──
+    if (beanFilter) {
+      rows = rows.filter(b => b.beans === beanFilter);
+    }
+
     if (showFavOnly) rows = rows.filter(b => b.favorite);
     if (methodFilter !== 'All') rows = rows.filter(b => b.method === methodFilter);
     if (search.trim()) {
@@ -563,7 +620,7 @@ function RawData() {
       return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
     });
     return rows;
-  }, [brews, search, methodFilter, sortKey, sortDir, showFavOnly]);
+  }, [brews, search, methodFilter, sortKey, sortDir, showFavOnly, beanFilter]);
 
   const handleSort = (key) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -579,8 +636,9 @@ function RawData() {
 
   return (
     <div style={s.root}>
-      {brewToDelete && <DeleteModal brew={brewToDelete} onConfirm={handleDeleteConfirm} onCancel={() => setBrewToDelete(null)} deleting={actionLoading} />}
-      {brewToEdit   && <EditModal   brew={brewToEdit}   onSave={handleUpdateBrew}       onCancel={() => setBrewToEdit(null)}   saving={actionLoading} />}
+      {brewToDelete  && <DeleteModal brew={brewToDelete}  onConfirm={handleDeleteConfirm} onCancel={() => setBrewToDelete(null)}  deleting={actionLoading} />}
+      {brewToEdit    && <EditModal   brew={brewToEdit}    onSave={handleUpdateBrew}        onCancel={() => setBrewToEdit(null)}    saving={actionLoading} />}
+      {brewNoRegion  && <NoRegionModal brew={brewNoRegion} onClose={() => setBrewNoRegion(null)} />}
 
       <div style={s.header}>
         <div style={s.headerLeft}>
@@ -591,6 +649,11 @@ function RawData() {
           </div>
         </div>
       </div>
+
+      {/* ── Bean filter banner ── */}
+      {beanFilter && (
+        <BeanFilterBanner beanName={beanFilter} onClear={onClearBeanFilter} />
+      )}
 
       {stats && (
         <div style={s.statsRow}>
@@ -645,46 +708,67 @@ function RawData() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((brew, idx) => (
-              <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
-                <td style={{ ...s.td, ...s.tdFav }}>
-                  <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none' }}
-                    title={brew.favorite ? 'Unfavourite' : 'Favourite'}
-                    onClick={() => handleToggleFavorite(brew)}
-                  >
-                    {brew.favorite ? '★' : '☆'}
-                  </button>
-                </td>
-                <td style={s.td}><span style={s.dateCell}>{formatDate(brew.date)}</span></td>
-                <td style={{ ...s.td, ...s.tdBeans }}>{fmt(brew.beans)}</td>
-                <td style={s.td}>{fmt(brew.variety)}</td>
-                <td style={s.td}><ColorBadge value={brew.processing} colorMap={PROCESSING_COLORS} /></td>
-                <td style={s.td}><ColorBadge value={brew.roastLevel} colorMap={ROAST_COLORS} /></td>
-                <td style={s.td}><ColorBadge value={brew.method} colorMap={METHOD_COLORS} /></td>
-                <td style={s.td}>{fmt(brew.grinder)}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.grindSetting)}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{brew.groundCoffeeWeight ? `${brew.groundCoffeeWeight}g` : '—'}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterTemp ? `${brew.waterTemp}°` : '—'}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterIn ? `${brew.waterIn}ml` : '—'}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.brewTime)}</td>
-                <td style={{ ...s.td, ...s.tdCenter }}>{brew.daysPast ? `${brew.daysPast}d` : '—'}</td>
-                <td style={{ ...s.td, ...s.tdTags }}><FlavorTagsCell tags={brew.flavorTags} /></td>
-                <td style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? <span style={s.noteText}>{brew.notes}</span> : '—'}</td>
-                <td style={{ ...s.td, ...s.tdNotes }}>{brew.brewingRecipe ? <span style={s.noteText}>{brew.brewingRecipe}</span> : '—'}</td>
-                <td style={{ ...s.td, ...s.tdNotes }}>{fmt(brew.extra)}</td>
-                <td style={s.td}>
-                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                    <button style={s.editBtn}   onClick={() => setBrewToEdit(brew)}>✏️</button>
-                    <button style={s.deleteBtn} onClick={() => setBrewToDelete(brew)}>🗑</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filtered.map((brew, idx) => {
+              const hasRegion = !!brew.regionRef && !!regionById[brew.regionRef];
+              return (
+                <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
+                  <td style={{ ...s.td, ...s.tdFav }}>
+                    <button
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none' }}
+                      title={brew.favorite ? 'Unfavourite' : 'Favourite'}
+                      onClick={() => handleToggleFavorite(brew)}
+                    >
+                      {brew.favorite ? '★' : '☆'}
+                    </button>
+                  </td>
+                  <td style={s.td}><span style={s.dateCell}>{formatDate(brew.date)}</span></td>
+
+                  <td style={{ ...s.td, ...s.tdBeans }}>
+                    <button
+                      onClick={() => handleBeanClick(brew)}
+                      title={hasRegion ? `View on map: ${regionById[brew.regionRef]?.name}` : 'No region linked to this brew'}
+                      style={s.beanBtn}
+                    >
+                      <span style={s.beanBtnText}>{fmt(brew.beans)}</span>
+                      <span style={{ ...s.beanBtnIcon, color: hasRegion ? '#5D4037' : '#D7CCC8', opacity: hasRegion ? 1 : 0.4 }}
+                        title={hasRegion ? regionById[brew.regionRef]?.name : 'No region linked'}
+                      >
+                        {hasRegion ? '📍' : '○'}
+                      </span>
+                    </button>
+                  </td>
+
+                  <td style={s.td}>{fmt(brew.variety)}</td>
+                  <td style={s.td}><ColorBadge value={brew.processing} colorMap={PROCESSING_COLORS} /></td>
+                  <td style={s.td}><ColorBadge value={brew.roastLevel} colorMap={ROAST_COLORS} /></td>
+                  <td style={s.td}><ColorBadge value={brew.method} colorMap={METHOD_COLORS} /></td>
+                  <td style={s.td}>{fmt(brew.grinder)}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.grindSetting)}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{brew.groundCoffeeWeight ? `${brew.groundCoffeeWeight}g` : '—'}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterTemp ? `${brew.waterTemp}°` : '—'}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{brew.waterIn ? `${brew.waterIn}ml` : '—'}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{fmt(brew.brewTime)}</td>
+                  <td style={{ ...s.td, ...s.tdCenter }}>{formatDate(brew.roastingDate)}</td>
+                  <td style={{ ...s.td, ...s.tdTags }}><FlavorTagsCell tags={brew.flavorTags} /></td>
+                  <td style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? <span style={s.noteText}>{brew.notes}</span> : '—'}</td>
+                  <td style={{ ...s.td, ...s.tdNotes }}>{brew.brewingRecipe ? <span style={s.noteText}>{brew.brewingRecipe}</span> : '—'}</td>
+                  <td style={{ ...s.td, ...s.tdNotes }}>{fmt(brew.extra)}</td>
+                  <td style={s.td}>
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                      <button style={s.editBtn}   onClick={() => setBrewToEdit(brew)}>✏️</button>
+                      <button style={s.deleteBtn} onClick={() => setBrewToDelete(brew)}>🗑</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length + 1} style={{ textAlign: 'center', padding: '40px', color: '#8D6E63' }}>
-                  No brews match your search.
+                  {beanFilter
+                    ? <>No brews found for <strong>{beanFilter}</strong>.</>
+                    : 'No brews match your search.'
+                  }
                 </td>
               </tr>
             )}
@@ -703,6 +787,23 @@ const s = {
   headerLeft:  { display: 'flex', alignItems: 'center', gap: '12px' },
   headerTitle: { fontSize: '16px', fontWeight: '700', color: '#F5E6D3' },
   headerSub:   { fontSize: '11px', color: 'rgba(245,230,211,0.5)' },
+
+  // ── Bean filter banner ──
+  filterBanner: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '10px 24px',
+    background: '#FFF8E1',
+    borderBottom: '1px solid #FFE082',
+  },
+  filterBannerText: { fontSize: '13px', color: '#5D4037' },
+  filterBannerClear: {
+    display: 'flex', alignItems: 'center', gap: '5px',
+    padding: '5px 12px', background: 'none',
+    border: '1px solid #A1887F', borderRadius: '20px',
+    fontSize: '12px', color: '#5D4037', cursor: 'pointer',
+    fontWeight: '600', transition: 'background 0.15s',
+  },
+
   statsRow:    { display: 'flex', background: '#D7CCC8', gap: '1px' },
   statCard:    { flex: 1, background: '#FFFDF9', padding: '14px', textAlign: 'center' },
   statIcon:    { fontSize: '16px', marginBottom: '4px' },
@@ -721,7 +822,7 @@ const s = {
   tr:          { borderBottom: '1px solid #F3EDEA' },
   trEven:      { background: '#FFFDF9' },
   td:          { padding: '8px 16px', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' },
-  tdBeans:     { fontWeight: '600', whiteSpace: 'normal' },
+  tdBeans:     { fontWeight: '600', whiteSpace: 'normal', padding: '6px 16px' },
   tdFav:       { textAlign: 'center', padding: '4px 6px', width: '40px' },
   tdCenter:    { textAlign: 'center' },
   tdNotes:     { whiteSpace: 'normal', fontStyle: 'italic', fontSize: '12px' },
@@ -729,7 +830,37 @@ const s = {
   editBtn:     { background: '#E3F2FD', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
   deleteBtn:   { background: '#FFEBEE', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' },
 
-  // ── Edit modal ──
+  beanBtn: {
+    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: '5px', textAlign: 'left', fontFamily: 'inherit',
+  },
+  beanBtnText: {
+    fontSize: '13px', fontWeight: '600', color: '#2C1810',
+    textDecoration: 'underline', textDecorationStyle: 'dotted',
+    textDecorationColor: '#A1887F', textUnderlineOffset: '3px',
+  },
+  beanBtnIcon: { fontSize: '11px', flexShrink: 0 },
+
+  noRegionModal: {
+    background: 'white', borderRadius: '12px', width: '400px',
+    display: 'flex', flexDirection: 'column',
+    boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden',
+  },
+  noRegionHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '16px 20px',
+    background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
+  },
+  noRegionCloseBtn: {
+    background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+    width: '28px', height: '28px', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', cursor: 'pointer', fontSize: '13px', color: '#F5E6D3',
+  },
+  noRegionBody: {
+    padding: '32px 24px', textAlign: 'center',
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+  },
+
   backdrop:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
   editModal:   { background: 'white', borderRadius: '12px', width: '560px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden' },
   editHeader:  { display: 'flex', alignItems: 'center', gap: '10px', padding: '16px 20px', borderBottom: '1px solid #EFEBE9', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
@@ -743,7 +874,6 @@ const s = {
   saveBtn:     { padding: '9px 20px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '13px' },
   cancelBtn:   { padding: '9px 20px', background: 'none', border: '1px solid #D7CCC8', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#8D6E63' },
 
-  // ── Delete modal ──
   deleteModal:      { background: 'white', padding: '24px', borderRadius: '12px', textAlign: 'center', maxWidth: '300px' },
   deleteModalIcon:  { fontSize: '32px', marginBottom: '12px' },
   deleteModalTitle: { fontSize: '16px', fontWeight: '700', marginBottom: '8px' },

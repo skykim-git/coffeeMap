@@ -1,25 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../../firebase/config';
 
 import {
-  buildRegionTree, buildPath,
   BREW_METHODS, PROCESSING_METHODS, ROAST_LEVELS,
   INITIAL_FEATURES, EMPTY_FORM,
   ms,
 } from '../shared/utils';
 import RegionPicker from './RegionPicker';
 import FlavorPicker from './FlavorPicker';
+import SavedBeansPicker from './SavedBeansPicker';
 
 export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRegionDocsUpdate }) {
   const [form, setForm]             = useState(EMPTY_FORM);
-  const [regionPath, setRegionPath] = useState([]);   // array of selected doc IDs, root → leaf
-  const [localDocs, setLocalDocs]   = useState(allRegionDocs); // local copy so new additions are instant
+  const [regionPath, setRegionPath] = useState([]);
+  const [localDocs, setLocalDocs]   = useState(allRegionDocs);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState(null);
+  const [showBeanPicker, setShowBeanPicker] = useState(false);
 
-  // Keep localDocs in sync if parent refreshes allRegionDocs
+  // Grinders fetched from shared Firestore collection
+  const [grinders, setGrinders]     = useState([]);
+  const [grindersLoading, setGrindersLoading] = useState(true);
+
   useEffect(() => { setLocalDocs(allRegionDocs); }, [allRegionDocs]);
+
+  // Fetch grinders from shared top-level collection
+  useEffect(() => {
+    (async () => {
+      setGrindersLoading(true);
+      try {
+        const snap = await getDocs(collection(db, 'grinders'));
+        const list = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        setGrinders(list);
+      } catch (err) {
+        console.error('Failed to fetch grinders', err);
+      }
+      setGrindersLoading(false);
+    })();
+  }, []);
 
   const [activeFeatures, setActiveFeatures] = useState(() => {
     const saved = localStorage.getItem('coffee_feature_settings');
@@ -33,20 +54,25 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
   const set = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
   const toggleFeature = (field) => setActiveFeatures(prev => ({ ...prev, [field]: !prev[field] }));
 
-  // Deepest selected doc ID is the regionRef to store on the brew
   const regionRef = regionPath.length > 0 ? regionPath[regionPath.length - 1] : null;
 
-  // Called by RegionPicker when user adds a brand-new region doc
   const handleNewDoc = (newDoc) => {
     setLocalDocs(prev => [...prev, newDoc]);
     if (onRegionDocsUpdate) onRegionDocsUpdate(newDoc);
   };
 
-  // Build human-readable path string from selected IDs
   const buildDisplayPath = () => {
     const byId = {};
     localDocs.forEach(d => { byId[d.id] = d; });
     return regionPath.map(id => byId[id]?.name).filter(Boolean).join(' › ');
+  };
+
+  // Called by SavedBeansPicker — applies form fields + optionally restores region
+  const handleApplyBean = (patch, savedRegionDisplay, savedRegionPathIds) => {
+    setForm(prev => ({ ...prev, ...patch }));
+    if (savedRegionPathIds?.length) {
+      setRegionPath(savedRegionPathIds);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -66,7 +92,7 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
           const val = form[key];
           if (key === 'flavorTags') {
             acc[key] = Array.isArray(val) && val.length > 0 ? val : null;
-          } else if (['waterTemp','waterIn','daysPast','groundCoffeeWeight'].includes(key)) {
+          } else if (['waterTemp', 'waterIn', 'groundCoffeeWeight'].includes(key)) {
             acc[key] = val ? Number(val) : null;
           } else {
             acc[key] = val?.toString().trim() || null;
@@ -87,11 +113,12 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
     }
   };
 
+  // Standard field renderer
   const renderField = (label, field, type, placeholder, widthStyle, options = null) => {
     const isActive = activeFeatures[field];
     return (
-      <div style={{ ...widthStyle, position:'relative', opacity: isActive ? 1 : 0.4 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
+      <div style={{ ...widthStyle, position: 'relative', opacity: isActive ? 1 : 0.4 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <label style={ms.label}>{label} {isActive && <span style={ms.required}>*</span>}</label>
           <button type="button" onClick={() => toggleFeature(field)} style={{ ...ms.deactivateIcon, color: isActive ? '#8D6E63' : '#BF360C' }}>
             {isActive ? '✕' : '+'}
@@ -111,11 +138,56 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
     );
   };
 
+  // Grinder field — dropdown from shared Firestore grinders collection
+  const renderGrinderField = (widthStyle) => {
+    const isActive = activeFeatures['grinder'];
+    const grinderNames = grinders.map(g => g.name).filter(Boolean);
+    return (
+      <div style={{ ...widthStyle, position: 'relative', opacity: isActive ? 1 : 0.4 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <label style={ms.label}>Grinder {isActive && <span style={ms.required}>*</span>}</label>
+          <button type="button" onClick={() => toggleFeature('grinder')} style={{ ...ms.deactivateIcon, color: isActive ? '#8D6E63' : '#BF360C' }}>
+            {isActive ? '✕' : '+'}
+          </button>
+        </div>
+        {grindersLoading ? (
+          <select style={ms.input} disabled>
+            <option>Loading…</option>
+          </select>
+        ) : grinderNames.length > 0 ? (
+          <select
+            style={ms.input}
+            value={form['grinder']}
+            onChange={e => set('grinder', e.target.value)}
+            disabled={!isActive}
+            required={isActive}
+          >
+            <option value="">Select grinder…</option>
+            {grinderNames.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        ) : (
+          // Fallback to text input if collection is empty
+          <input
+            style={ms.input}
+            type="text"
+            placeholder="Comandante…"
+            value={form['grinder']}
+            onChange={e => set('grinder', e.target.value)}
+            disabled={!isActive}
+            required={isActive}
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={ms.backdrop} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ ...ms.modal, maxWidth:'650px' }}>
+      <div style={{ ...ms.modal, maxWidth: '650px' }}>
         <div style={ms.header}>
-          <div style={ms.headerLeft}><span style={{ fontSize:'20px' }}>☕</span><span style={ms.title}>Add Brew</span></div>
+          <div style={ms.headerLeft}><span style={ms.title}>Add Brew</span></div>
           <button style={ms.closeBtn} onClick={onClose}>✕</button>
         </div>
         {error && <div style={ms.errorBox}>{error}</div>}
@@ -123,9 +195,48 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
         <form onSubmit={handleSubmit}>
           <div style={ms.grid}>
 
-            {/* ── Origin ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Origin</div></div>
-            <div style={{ width:'100%' }}>
+            {/* ══ DATE ══ */}
+            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Date</div></div>
+            {renderField("Brew Date", "date", "date", "", ms.fieldFull)}
+
+            {/* ══ BEAN INFO ══ */}
+            <div style={{ width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={ms.sectionDivider}>Bean Info</div>
+                <button
+                  type="button"
+                  onClick={() => setShowBeanPicker(prev => !prev)}
+                  style={{
+                    background: showBeanPicker ? '#EFE9E4' : '#6D4C41',
+                    color: showBeanPicker ? '#6D4C41' : '#fff',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '5px 13px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    marginBottom: '6px',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {showBeanPicker ? '✕ Close' : 'Open Presets'}
+                </button>
+              </div>
+            </div>
+
+            {showBeanPicker && (
+              <div style={{ width: '100%' }}>
+                <SavedBeansPicker
+                  form={form}
+                  regionPath={regionPath}
+                  regionDisplayPath={buildDisplayPath()}
+                  onApply={handleApplyBean}
+                />
+              </div>
+            )}
+
+            {/* Origin / region picker sits inside bean info */}
+            <div style={{ width: '100%' }}>
               <RegionPicker
                 allRegionDocs={localDocs}
                 value={regionPath}
@@ -134,32 +245,26 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
               />
             </div>
 
-            {/* ── Record ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Record</div></div>
-            {renderField("Date",  "date",  "date", "", ms.fieldHalf)}
-            {renderField("Beans", "beans", "text", "Roaster / Label", ms.fieldHalf)}
+            {renderField("Beans",          "beans",       "text",   "Roaster / Label",  ms.fieldHalf)}
+            {renderField("Variety",        "variety",     "text",   "Geisha, Bourbon…", ms.fieldHalf)}
+            {renderField("Processing",     "processing",  "select", "",                 ms.fieldThird, PROCESSING_METHODS)}
+            {renderField("Roast Level",    "roastLevel",  "select", "",                 ms.fieldThird, ROAST_LEVELS)}
+            {renderField("Roasting Date",  "roastingDate","date",   "",                 ms.fieldThird)}
 
-            {/* ── Bean Info ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Bean Info</div></div>
-            {renderField("Variety",    "variety",    "text",   "Geisha, Bourbon…", ms.fieldThird)}
-            {renderField("Processing", "processing", "select", "",                 ms.fieldThird, PROCESSING_METHODS)}
-            {renderField("Roast Level","roastLevel", "select", "",                 ms.fieldThird, ROAST_LEVELS)}
+            {/* ══ BREW SETUP ══ */}
+            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Brew Setup</div></div>
+            {renderField("Brew Method",  "method",             "select", "",    ms.fieldThird, BREW_METHODS)}
+            {renderField("Coffee (g)",   "groundCoffeeWeight", "number", "15",  ms.fieldThird)}
+            {renderField("Water (ml)",   "waterIn",            "number", "250", ms.fieldThird)}
+            {renderField("Temp (°C)",    "waterTemp",          "number", "93",  ms.fieldThird)}
+            {renderField("Brew Time",    "brewTime",           "text",   "2:30",ms.fieldThird)}
+            {renderGrinderField(ms.fieldThird)}
+            {renderField("Grind Setting", "grindSetting", "text", "20 clicks",  ms.fieldThird)}
 
-            {/* ── Brew Setup ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Brew Setup</div></div>
-            {renderField("Brew Method",     "method",             "select", "",            ms.fieldThird, BREW_METHODS)}
-            {renderField("Grinder",         "grinder",            "text",   "Comandante…", ms.fieldThird)}
-            {renderField("Setting",         "grindSetting",       "text",   "20 clicks",   ms.fieldThird)}
-            {renderField("Coffee (g)",      "groundCoffeeWeight", "number", "15",          ms.fieldThird)}
-            {renderField("Temp (°C)",       "waterTemp",          "number", "93",          ms.fieldThird)}
-            {renderField("Water (ml)",      "waterIn",            "number", "250",         ms.fieldThird)}
-            {renderField("Brew Time",       "brewTime",           "text",   "2:30",        ms.fieldThird)}
-            {renderField("Days Post Roast", "daysPast",           "number", "14",          ms.fieldThird)}
-
-            {/* ── Tasting ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Tasting</div></div>
-            <div style={{ width:'100%', opacity: activeFeatures.flavorTags ? 1 : 0.4 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+            {/* ══ TASTING ══ */}
+            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Tasting</div></div>
+            <div style={{ width: '100%', opacity: activeFeatures.flavorTags ? 1 : 0.4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label style={ms.label}>Flavor Tags {activeFeatures.flavorTags && <span style={ms.required}>*</span>}</label>
                 <button type="button" onClick={() => toggleFeature('flavorTags')} style={{ ...ms.deactivateIcon, color: activeFeatures.flavorTags ? '#8D6E63' : '#BF360C' }}>
                   {activeFeatures.flavorTags ? '✕' : '+'}
@@ -167,17 +272,18 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
               </div>
               {activeFeatures.flavorTags
                 ? <FlavorPicker selectedFlavors={form.flavorTags} onChange={tags => set('flavorTags', tags)} />
-                : <div style={{ ...ms.input, color:'#BCAAA4', fontSize:'12px' }}>Flavor tags disabled</div>
+                : <div style={{ ...ms.input, color: '#BCAAA4', fontSize: '12px' }}>Flavor tags disabled</div>
               }
             </div>
             {renderField("Tasting Notes", "notes", "textarea", "Body, finish, acidity…", ms.fieldFull)}
 
-            {/* ── Recipe & Notes ── */}
-            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Recipe & Notes</div></div>
+            {/* ══ RECIPE & NOTES ══ */}
+            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Recipe & Notes</div></div>
             {renderField("Brewing Recipe", "brewingRecipe", "textarea", "Pour schedule: 0s bloom 45g, 45s +100g…", ms.fieldFull)}
             {renderField("Extra Notes",    "extra",         "textarea", "Water recipe, equipment notes…",           ms.fieldFull)}
 
           </div>
+
           <div style={ms.actions}>
             <button type="button" style={ms.cancelBtn} onClick={onClose}>Cancel</button>
             <button type="submit" style={ms.submitBtn} disabled={submitting}>
