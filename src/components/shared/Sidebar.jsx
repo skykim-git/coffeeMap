@@ -8,7 +8,7 @@ export function LoadingScreen() {
   return (
     <div style={{
       width: '100%',
-      height: '100vh',
+      height: '100dvh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -32,7 +32,7 @@ export function LoadingScreen() {
 export function ErrorScreen({ message }) {
   return (
     <div style={{
-      width: '100%', height: '100vh',
+      width: '100%', height: '100dvh',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       background: 'linear-gradient(135deg, #6F4E37 0%, #432818 100%)',
@@ -59,6 +59,7 @@ export function Sidebar({
     <>
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="sidebar-header">
+          <button className="sidebar-back-button" onClick={onClose} title="Close Menu">←</button>
           <div className="logo">
             <div className="logo-icon">🌿</div>
             <div className="logo-text">
@@ -127,8 +128,6 @@ export function Sidebar({
             </p>
           )}
         </div>
-
-        <button className="sidebar-back-button" onClick={onClose} title="Close Menu">←</button>
       </aside>
 
       {open && <div className="sidebar-overlay" onClick={onClose} />}

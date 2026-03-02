@@ -341,7 +341,7 @@ function ByNotes({ allRegionDocs = [] }) {
 }
 
 const s = {
-  container:      { padding:'40px 20px', minHeight:'100vh', fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+  container:      { padding:'40px 20px', minHeight:'100vh', overflowY:'auto', fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   content:        { maxWidth:'900px', margin:'0 auto' },
   searchContainer:{ position:'relative', marginBottom:'40px' },
   searchBox:      { display:'flex', alignItems:'center', background:'rgba(255,255,255,0.9)', backdropFilter:'blur(10px)', border:'1px solid rgba(0,0,0,0.07)', borderRadius:'16px', padding:'12px 20px', boxShadow:'0 10px 30px rgba(0,0,0,0.05)' },

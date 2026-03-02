@@ -265,7 +265,7 @@ export default function BrazilMap() {
         );
 
       case 'by-notes':
-        return <div className="map-wrapper"><ByNotes allRegionDocs={allRegionDocs} /></div>;
+        return <div className="map-wrapper scrollable"><ByNotes allRegionDocs={allRegionDocs} /></div>;
 
       case 'raw-data':
         return (
