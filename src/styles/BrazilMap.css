@@ -12,7 +12,13 @@
   --caramel: #D4A574;
   --gradient-start: #6F4E37;
   --gradient-end: #432818;
+  --bottom-bar-height: 64px;
+  --top-bar-height: 56px;
 }
+
+/* ========================================
+   BASE LAYOUT
+   ======================================== */
 
 .brazil-map-container {
   width: 100%;
@@ -25,7 +31,7 @@
 }
 
 /* ========================================
-   SIDEBAR
+   SIDEBAR (desktop)
    ======================================== */
 
 .sidebar {
@@ -62,6 +68,7 @@
   justify-content: center;
   font-size: 24px;
   box-shadow: 0 4px 12px rgba(93, 64, 55, 0.2);
+  flex-shrink: 0;
 }
 
 .logo-text h1 {
@@ -112,7 +119,7 @@
   font-weight: 600;
 }
 
-/* Navigation Tabs */
+/* Navigation Tabs (desktop sidebar) */
 .nav-tabs {
   padding: 0 24px;
   margin-top: 8px;
@@ -134,6 +141,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 44px;
 }
 
 .sidebar-tab:hover {
@@ -186,7 +194,7 @@
 .region-header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
@@ -209,6 +217,7 @@
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .region-subregions {
@@ -237,18 +246,25 @@
   display: flex;
   flex-direction: column;
   background: var(--cream);
+  overflow: hidden;
 }
+
+/* ========================================
+   TOP BAR
+   ======================================== */
 
 .top-bar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  padding: 20px 32px;
+  padding: 0 32px;
+  height: var(--top-bar-height);
   border-bottom: 1px solid rgba(93, 64, 55, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   z-index: 100;
+  flex-shrink: 0;
 }
 
 .breadcrumb {
@@ -257,31 +273,48 @@
   gap: 8px;
   font-size: 14px;
   color: var(--coffee-light);
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
 }
 
 .breadcrumb-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .breadcrumb-home {
   color: var(--coffee-medium);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .breadcrumb-current {
   color: var(--coffee-dark);
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 .top-bar-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
+/* ========================================
+   BUTTONS
+   ======================================== */
+
 .btn {
-  padding: 10px 20px;
+  padding: 9px 16px;
   border-radius: 8px;
   border: none;
   font-size: 14px;
@@ -291,6 +324,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  white-space: nowrap;
 }
 
 .btn-secondary {
@@ -318,6 +353,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Custom Map Controls */
@@ -359,6 +395,26 @@
 
 .zoom-button:not(:last-child) {
   border-bottom: 1px solid var(--latte);
+}
+
+/* ========================================
+   BOTTOM TAB BAR (mobile only — hidden on desktop)
+   ======================================== */
+
+.bottom-tab-bar {
+  display: none;
+}
+
+/* ========================================
+   SIDEBAR OVERLAY & BACK BUTTON
+   ======================================== */
+
+.sidebar-overlay {
+  display: none;
+}
+
+.sidebar-back-button {
+  display: none;
 }
 
 /* ========================================
@@ -404,7 +460,6 @@
   border-top: 1px solid #eee;
 }
 
-/* Container for flavor tags */
 .flavor-tags {
   display: flex;
   gap: 6px;
@@ -413,7 +468,6 @@
   margin: 8px 0;
 }
 
-/* Base flavor tag styling */
 .flavor-tag {
   font-size: 11px;
   font-weight: 600;
@@ -427,102 +481,46 @@
   white-space: nowrap;
 }
 
-/* Specific color gradients for each flavor */
-.flavor-tag.citrus {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.sidebar::-webkit-scrollbar,
+.regions-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.flavor-tag.chocolate {
-  background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+.sidebar::-webkit-scrollbar-track,
+.regions-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.flavor-tag.aroma {
-  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-}
-
-.flavor-tag.fruity {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-}
-
-.flavor-tag.honey {
-  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-}
-
-.flavor-tag.texture {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-}
-
-.flavor-tag.raspberry {
-  background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%);
-}
-
-.flavor-tag.intense {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-}
-
-.flavor-tag.banana {
-  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
-}
-
-.flavor-tag.green {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-}
-
-.flavor-tag.apple {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-}
-
-.flavor-tag.grape {
-  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-}
-
-.flavor-tag.mango {
-  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-}
-
-.flavor-tag.describe {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-}
-
-.flavor-tag.acidic {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-}
-
-.flavor-tag.nutty {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-}
-
-.flavor-tag.pineapple {
-  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
-}
-
-.flavor-tag.tropical {
-  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-}
-
-/* Default gradient for any unspecified flavor */
-.flavor-tag:not([class*=" "]) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-/* Hover effect for flavor tags */
-.flavor-tag:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
+.sidebar::-webkit-scrollbar-thumb,
+.regions-list::-webkit-scrollbar-thumb {
+  background: var(--coffee-light);
+  border-radius: 10px;
 }
 
 /* ========================================
-   MOBILE RESPONSIVE
+   LEAFLET OVERRIDES
    ======================================== */
 
-.sidebar-overlay {
-  display: none;
+.leaflet-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-.sidebar-back-button {
-  display: none;
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
+
+.leaflet-popup-tip {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   TABLET: 768–1024px
+   ======================================== */
 
 @media (max-width: 1024px) {
   .brazil-map-container {
@@ -532,9 +530,10 @@
   .sidebar {
     position: fixed;
     left: -100%;
-    width: 320px;
+    width: min(320px, 85vw);
     height: 100vh;
-    transition: left 0.3s;
+    top: 0;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 2000;
   }
 
@@ -579,69 +578,259 @@
     height: 48px;
   }
 
-  .sidebar-back-button:hover {
-    background: var(--cream);
-    transform: translateX(-2px);
-  }
-
   .top-bar {
-    padding: 16px;
-  }
-
-  .breadcrumb {
-    font-size: 12px;
+    padding: 0 16px;
   }
 
   .btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     font-size: 13px;
   }
 }
 
 /* ========================================
-   SCROLLBAR STYLING
+   MOBILE: 375–768px — Bottom Tab Bar
    ======================================== */
 
-.sidebar::-webkit-scrollbar,
-.regions-list::-webkit-scrollbar {
-  width: 6px;
-}
+@media (max-width: 768px) {
+  :root {
+    --bottom-bar-height: 64px;
+    --top-bar-height: 52px;
+  }
 
-.sidebar::-webkit-scrollbar-track,
-.regions-list::-webkit-scrollbar-track {
-  background: transparent;
-}
+  /* Full-height layout with room for both bars */
+  .brazil-map-container {
+    grid-template-columns: 1fr;
+    height: 100dvh; /* dynamic viewport height — handles iOS Safari chrome */
+    height: 100vh;
+  }
 
-.sidebar::-webkit-scrollbar-thumb,
-.regions-list::-webkit-scrollbar-thumb {
-  background: var(--coffee-light);
-  border-radius: 10px;
-}
+  .main-content {
+    height: 100dvh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-.sidebar::-webkit-scrollbar-thumb:hover,
-.regions-list::-webkit-scrollbar-thumb:hover {
-  background: var(--coffee-medium);
+  /* ── Top Bar ── */
+  .top-bar {
+    padding: 0 12px;
+    height: var(--top-bar-height);
+    flex-shrink: 0;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .breadcrumb-home {
+    font-size: 12px;
+  }
+
+  .breadcrumb-current {
+    max-width: 100px;
+    font-size: 12px;
+  }
+
+  .top-bar-actions {
+    gap: 6px;
+    margin-left: 8px;
+  }
+
+  /* Hide sign out and menu button text on mobile — icon only */
+  .btn-icon-only .btn-label {
+    display: none;
+  }
+
+  .btn {
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* Add Brew keeps label but is compact */
+  .btn-add-brew {
+    width: auto;
+    padding: 0 12px;
+    font-size: 13px;
+    height: 40px;
+    min-height: 40px;
+  }
+
+  /* ── Map wrapper takes available space ── */
+  .map-wrapper {
+    flex: 1;
+    min-height: 0;
+    /* Shift map content so zoom controls don't sit behind bottom bar */
+  }
+
+  /* Move zoom controls above the bottom tab bar */
+  .custom-zoom-controls {
+    bottom: calc(var(--bottom-bar-height) + 16px);
+    right: 16px;
+  }
+
+  .zoom-button {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  /* ── Bottom Tab Bar ── */
+  .bottom-tab-bar {
+    display: flex;
+    align-items: stretch;
+    height: var(--bottom-bar-height);
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(93, 64, 55, 0.12);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 1500;
+    flex-shrink: 0;
+    /* Safe area inset for iPhone home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 8px 4px;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+
+  .bottom-tab:active {
+    background: var(--latte);
+  }
+
+  .bottom-tab.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: var(--coffee-medium);
+    border-radius: 0 0 2px 2px;
+  }
+
+  .bottom-tab-icon {
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 0.15s;
+  }
+
+  .bottom-tab.active .bottom-tab-icon {
+    transform: scale(1.1);
+  }
+
+  .bottom-tab-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--coffee-light);
+    letter-spacing: 0.3px;
+    line-height: 1;
+  }
+
+  .bottom-tab.active .bottom-tab-label {
+    color: var(--coffee-medium);
+  }
+
+  /* ── Sidebar becomes full-width drawer on mobile ── */
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .sidebar-header {
+    padding: 20px 16px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .logo-text h1 {
+    font-size: 17px;
+  }
+
+  .stats-grid {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  .nav-tabs {
+    padding: 0 16px;
+  }
+
+  .regions-list {
+    padding: 16px;
+  }
+
+  .region-item {
+    padding: 14px;
+  }
+
+  .region-name {
+    font-size: 14px;
+  }
+
+  /* ── Popup fits on mobile ── */
+  .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 12px !important;
+  }
 }
 
 /* ========================================
-   LEAFLET OVERRIDES
+   SMALL MOBILE: < 390px
    ======================================== */
 
-.leaflet-container {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-}
+@media (max-width: 390px) {
+  .bottom-tab-label {
+    font-size: 9px;
+  }
 
-.leaflet-popup-content-wrapper {
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-}
+  .bottom-tab-icon {
+    font-size: 20px;
+  }
 
-.leaflet-popup-tip {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+  .breadcrumb-current {
+    max-width: 80px;
+  }
 
-.btn-primary {
-  background: linear-gradient(135deg, #5D4037, #2C1810);
-  color: white;
-  border-color: transparent;
+  .btn-add-brew {
+    font-size: 12px;
+    padding: 0 10px;
+  }
 }

@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/BrazilMap.css';
 
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 
@@ -16,9 +16,9 @@ import { levelIcon } from './map/mapIcons';
 import { MapEventHandler, ZoomControls, BoundaryFitter, PopupCloser } from './map/MapControls';
 import BrewStatsPopup from './map/BrewStatsPopup';
 import AddBrewModal from './brew/AddBrewModal';
-import { Sidebar, TopBar, LoadingScreen, ErrorScreen } from './shared/Sidebar';
+import { Sidebar, TopBar, BottomTabBar, LoadingScreen, ErrorScreen } from './shared/Sidebar';
 
-const worldBounds = [[-60,-180],[75,180]];
+const worldBounds = [[-60, -180], [75, 180]];
 
 export default function BrazilMap() {
   const [allRegionDocs, setAllRegionDocs] = useState([]);
@@ -28,7 +28,7 @@ export default function BrazilMap() {
   const [error, setError]                 = useState(null);
 
   const [currentZoom, setCurrentZoom]     = useState(3);
-  const [currentCenter, setCurrentCenter] = useState({ lat:'15.0000', lng:'-20.0000' });
+  const [currentCenter, setCurrentCenter] = useState({ lat: '15.0000', lng: '-20.0000' });
   const [selectedDoc, setSelectedDoc]     = useState(null);
   const [pinnedDoc, setPinnedDoc]         = useState(null);
   const [resetView, setResetView]         = useState(false);
@@ -37,10 +37,10 @@ export default function BrazilMap() {
   const [closePopup, setClosePopup]       = useState(false);
   const [showBrewModal, setShowBrewModal] = useState(false);
 
-  // ── Bean filter — set by SavedBeansTab, consumed by RawData ───────────────
   const [beanFilter, setBeanFilter] = useState(null);
 
   // ── Data fetching ──────────────────────────────────────────────────────────
+
   useEffect(() => {
     const fetchRegions = async () => {
       try {
@@ -75,6 +75,7 @@ export default function BrazilMap() {
   }, []);
 
   // ── Derived data ───────────────────────────────────────────────────────────
+
   const { byId } = useMemo(() => buildRegionTree(allRegionDocs), [allRegionDocs]);
 
   const brewedDocIds = useMemo(() => {
@@ -123,17 +124,18 @@ export default function BrazilMap() {
   );
 
   // ── Visibility logic ───────────────────────────────────────────────────────
+
   const visibleLevels = () => {
     if (!selectedDoc) {
-      if (currentZoom >= 8) return ['town','subregion','region','country'];
-      if (currentZoom >= 6) return ['subregion','region'];
-      if (currentZoom >= 4) return ['region','country'];
+      if (currentZoom >= 8) return ['town', 'subregion', 'region', 'country'];
+      if (currentZoom >= 6) return ['subregion', 'region'];
+      if (currentZoom >= 4) return ['region', 'country'];
       return ['country'];
     }
     const level = selectedDoc.level;
-    if (level === 'country') return ['region','subregion'];
-    if (level === 'region')  return ['subregion','town'];
-    return ['town','subregion'];
+    if (level === 'country') return ['region', 'subregion'];
+    if (level === 'region')  return ['subregion', 'town'];
+    return ['town', 'subregion'];
   };
 
   const visibleDocs = mapDocs.filter(d => {
@@ -152,6 +154,7 @@ export default function BrazilMap() {
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
+
   const handleDocClick = (doc) => {
     setPinnedDoc(doc);
     setResetView(false);
@@ -172,43 +175,45 @@ export default function BrazilMap() {
   const handleBrewSubmitted = (newBrew) => {
     setBrewRecords(prev => {
       const updated = [...prev, newBrew];
-      updated.sort((a,b) => (a.date??'').localeCompare(b.date??''));
+      updated.sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
       return updated;
     });
   };
 
-  // ── Navigate from RawData → map marker ────────────────────────────────────
   const handleNavigateToRegion = (regionDoc) => {
     setActiveTab('coffee-map');
-    setTimeout(() => {
-      handleDocClick(regionDoc);
-    }, 100);
+    setTimeout(() => handleDocClick(regionDoc), 100);
   };
 
-  // ── Navigate from SavedBeansTab → RawData with filter ─────────────────────
   const handleSelectBean = (bean) => {
     setBeanFilter(bean.name);
     setActiveTab('raw-data');
   };
 
-  const handleClearBeanFilter = () => {
-    setBeanFilter(null);
-  };
+  const handleClearBeanFilter = () => setBeanFilter(null);
 
-  // Clear filter when leaving raw-data tab so it doesn't persist unexpectedly
   const handleSetActiveTab = (tab) => {
     if (tab !== 'raw-data') setBeanFilter(null);
     setActiveTab(tab);
   };
 
   // ── Tab content ────────────────────────────────────────────────────────────
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'coffee-map':
         return (
           <div className="map-wrapper">
-            <MapContainer center={[15,-20]} zoom={3} minZoom={2} maxZoom={18} maxBounds={worldBounds} zoomControl={false} style={{ height:'100%', width:'100%' }}>
-              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={18} />
+            <MapContainer
+              center={[15, -20]} zoom={3} minZoom={2} maxZoom={18}
+              maxBounds={worldBounds} zoomControl={false}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={18}
+              />
 
               {visibleDocs.map(doc => {
                 const coord = parseCoord(doc.coordinate);
@@ -226,11 +231,11 @@ export default function BrazilMap() {
                     ref={isPinned && isLeaf ? (marker) => { if (marker) marker.openPopup(); } : null}
                     eventHandlers={{ click: () => handleDocClick(doc) }}
                   >
-                    <Tooltip direction="top" offset={[0,-12]} opacity={0.95} permanent={false}>
-                      <div style={{ fontFamily:'-apple-system, sans-serif', fontSize:'12px', fontWeight:'700', color:'#2C1810' }}>
+                    <Tooltip direction="top" offset={[0, -12]} opacity={0.95} permanent={false}>
+                      <div style={{ fontFamily: '-apple-system, sans-serif', fontSize: '12px', fontWeight: '700', color: '#2C1810' }}>
                         {doc.name}
-                        {doc.nameLocal && <span style={{ fontWeight:'400', color:'#8D6E63' }}> · {doc.nameLocal}</span>}
-                        <div style={{ fontSize:'10px', color:'#BCAAA4', textTransform:'capitalize', marginTop:'2px' }}>{doc.level}</div>
+                        {doc.nameLocal && <span style={{ fontWeight: '400', color: '#8D6E63' }}> · {doc.nameLocal}</span>}
+                        <div style={{ fontSize: '10px', color: '#BCAAA4', textTransform: 'capitalize', marginTop: '2px' }}>{doc.level}</div>
                       </div>
                     </Tooltip>
                     {isPinned && (
@@ -325,7 +330,11 @@ export default function BrazilMap() {
           onToggleSidebar={() => setSidebarOpen(v => !v)}
           setActiveTab={handleSetActiveTab}
         />
+
         {renderTabContent()}
+
+        {/* Bottom tab bar — visible only on mobile via CSS */}
+        <BottomTabBar activeTab={activeTab} setActiveTab={handleSetActiveTab} />
       </main>
     </div>
   );
