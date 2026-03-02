@@ -8,62 +8,24 @@ export function LoadingScreen() {
       width: '100%',
       height: '100vh',
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #6F4E37 0%, #432818 100%)',
-      gap: '24px',
+      background: '#ffffff',
     }}>
       <style>{`
-        @keyframes breathe {
-          0%, 100% { opacity: 0.9; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.92); }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
-        @keyframes dots {
-          0%, 20% { content: ''; }
-          40% { content: '.'; }
-          60% { content: '..'; }
-          80%, 100% { content: '...'; }
-        }
-        .loading-icon {
-          font-size: 40px;
-          animation: breathe 1.8s ease-in-out infinite;
-        }
-        .loading-bar-track {
-          width: 120px;
-          height: 2px;
-          background: rgba(255, 255, 255, 0.15);
-          border-radius: 999px;
-          overflow: hidden;
-        }
-        @keyframes slide {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
-        .loading-bar-fill {
-          width: 50%;
-          height: 100%;
-          background: rgba(255, 255, 255, 0.7);
-          border-radius: 999px;
-          animation: slide 1.4s ease-in-out infinite;
+        .spinner {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 2.5px solid #e5e5e5;
+          border-top-color: #1a1a1a;
+          animation: spin 0.75s linear infinite;
         }
       `}</style>
-
-      <div className="loading-icon">☕</div>
-
-      <div style={{
-        color: 'rgba(255, 255, 255, 0.75)',
-        fontSize: '13px',
-        fontWeight: '500',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-      }}>
-        Loading your map
-      </div>
-
-      <div className="loading-bar-track">
-        <div className="loading-bar-fill" />
-      </div>
+      <div className="spinner" />
     </div>
   );
 }
@@ -84,7 +46,7 @@ export function Sidebar({ open, onClose, totalBrews, brewedRegions, brewedCountr
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <div className="logo-icon">☕</div>
+            <div className="logo-icon">🌿</div>
             <div className="logo-text"><h1>Coffee Journey</h1><p>Taste Map</p></div>
           </div>
         </div>

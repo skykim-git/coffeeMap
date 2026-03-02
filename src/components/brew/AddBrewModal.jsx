@@ -11,6 +11,115 @@ import RegionPicker from './RegionPicker';
 import FlavorPicker from './FlavorPicker';
 import SavedBeansPicker from './SavedBeansPicker';
 
+// ── iOS-style toggle ──────────────────────────────────────────────────────────
+const Toggle = ({ active, onToggle }) => (
+  <button
+    type="button"
+    aria-pressed={active}
+    onClick={onToggle}
+    style={ms.toggleTrack(active)}
+  >
+    <span style={ms.toggleThumb(active)} />
+  </button>
+);
+
+// ── Hover-lift submit button ──────────────────────────────────────────────────
+const SubmitButton = ({ submitting }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="submit"
+      disabled={submitting}
+      style={{
+        ...ms.submitBtn,
+        ...(hovered && !submitting ? ms.submitBtnHover : {}),
+        opacity: submitting ? 0.7 : 1,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {submitting ? 'Saving...' : '+ Save Brew'}
+    </button>
+  );
+};
+
+// ── Custom select ─────────────────────────────────────────────────────────────
+// Wraps a <select> with the chevron SVG style.
+const CustomSelect = ({ value, onChange, disabled, required, options, placeholder }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <select
+      style={{
+        ...ms.input,
+        ...ms.select,
+        ...(focused ? {
+          borderColor: '#5D4037',
+          boxShadow: '0 0 0 3px rgba(93,64,55,0.12)',
+        } : {}),
+      }}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      required={required}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    >
+      <option value="">{placeholder || 'Select…'}</option>
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
+};
+
+// ── Focus-aware text input ────────────────────────────────────────────────────
+const FocusInput = ({ type, placeholder, value, onChange, disabled, required, style }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <input
+      style={{
+        ...ms.input,
+        ...(style || {}),
+        ...(focused ? {
+          borderColor: '#5D4037',
+          boxShadow: '0 0 0 3px rgba(93,64,55,0.12)',
+        } : {}),
+      }}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      required={required}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+};
+
+// ── Focus-aware textarea ──────────────────────────────────────────────────────
+const FocusTextarea = ({ placeholder, value, onChange, disabled }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <textarea
+      style={{
+        ...ms.input,
+        ...ms.textarea,
+        ...(focused ? {
+          borderColor: '#5D4037',
+          boxShadow: '0 0 0 3px rgba(93,64,55,0.12)',
+        } : {}),
+      }}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      rows={2}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+};
+
+// ── Main Modal ────────────────────────────────────────────────────────────────
 export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRegionDocsUpdate }) {
   const [form, setForm]             = useState(EMPTY_FORM);
   const [regionPath, setRegionPath] = useState([]);
@@ -19,13 +128,11 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
   const [error, setError]           = useState(null);
   const [showBeanPicker, setShowBeanPicker] = useState(false);
 
-  // Grinders fetched from shared Firestore collection
-  const [grinders, setGrinders]     = useState([]);
+  const [grinders, setGrinders]           = useState([]);
   const [grindersLoading, setGrindersLoading] = useState(true);
 
   useEffect(() => { setLocalDocs(allRegionDocs); }, [allRegionDocs]);
 
-  // Fetch grinders from shared top-level collection
   useEffect(() => {
     (async () => {
       setGrindersLoading(true);
@@ -67,12 +174,9 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
     return regionPath.map(id => byId[id]?.name).filter(Boolean).join(' › ');
   };
 
-  // Called by SavedBeansPicker — applies form fields + optionally restores region
   const handleApplyBean = (patch, savedRegionDisplay, savedRegionPathIds) => {
     setForm(prev => ({ ...prev, ...patch }));
-    if (savedRegionPathIds?.length) {
-      setRegionPath(savedRegionPathIds);
-    }
+    if (savedRegionPathIds?.length) setRegionPath(savedRegionPathIds);
   };
 
   const handleSubmit = async (e) => {
@@ -113,64 +217,73 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
     }
   };
 
-  // Standard field renderer
+  // ── Field label row with iOS toggle ────────────────────────────────────────
+  const FieldHeader = ({ label, field, isActive }) => (
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+      <label style={ms.label}>
+        {label}{isActive && <span style={ms.required}> *</span>}
+      </label>
+      <Toggle active={isActive} onToggle={() => toggleFeature(field)} />
+    </div>
+  );
+
+  // ── Standard field renderer ─────────────────────────────────────────────────
   const renderField = (label, field, type, placeholder, widthStyle, options = null) => {
     const isActive = activeFeatures[field];
     return (
-      <div style={{ ...widthStyle, position: 'relative', opacity: isActive ? 1 : 0.4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <label style={ms.label}>{label} {isActive && <span style={ms.required}>*</span>}</label>
-          <button type="button" onClick={() => toggleFeature(field)} style={{ ...ms.deactivateIcon, color: isActive ? '#8D6E63' : '#BF360C' }}>
-            {isActive ? '✕' : '+'}
-          </button>
-        </div>
+      <div style={{ ...widthStyle, position:'relative', opacity: isActive ? 1 : 0.45, transition:'opacity 0.2s' }}>
+        <FieldHeader label={label} field={field} isActive={isActive} />
         {type === 'select' ? (
-          <select style={ms.input} value={form[field]} onChange={e => set(field, e.target.value)} disabled={!isActive} required={isActive}>
-            <option value="">Select...</option>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
+          <CustomSelect
+            value={form[field]}
+            onChange={e => set(field, e.target.value)}
+            disabled={!isActive}
+            required={isActive}
+            options={options}
+          />
         ) : type === 'textarea' ? (
-          <textarea style={{ ...ms.input, ...ms.textarea }} placeholder={placeholder} value={form[field]} onChange={e => set(field, e.target.value)} disabled={!isActive} rows={2} />
+          <FocusTextarea
+            placeholder={placeholder}
+            value={form[field]}
+            onChange={e => set(field, e.target.value)}
+            disabled={!isActive}
+          />
         ) : (
-          <input style={ms.input} type={type} placeholder={placeholder} value={form[field]} onChange={e => set(field, e.target.value)} disabled={!isActive} required={isActive} />
+          <FocusInput
+            type={type}
+            placeholder={placeholder}
+            value={form[field]}
+            onChange={e => set(field, e.target.value)}
+            disabled={!isActive}
+            required={isActive}
+          />
         )}
       </div>
     );
   };
 
-  // Grinder field — dropdown from shared Firestore grinders collection
+  // ── Grinder field ───────────────────────────────────────────────────────────
   const renderGrinderField = (widthStyle) => {
     const isActive = activeFeatures['grinder'];
     const grinderNames = grinders.map(g => g.name).filter(Boolean);
     return (
-      <div style={{ ...widthStyle, position: 'relative', opacity: isActive ? 1 : 0.4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <label style={ms.label}>Grinder {isActive && <span style={ms.required}>*</span>}</label>
-          <button type="button" onClick={() => toggleFeature('grinder')} style={{ ...ms.deactivateIcon, color: isActive ? '#8D6E63' : '#BF360C' }}>
-            {isActive ? '✕' : '+'}
-          </button>
-        </div>
+      <div style={{ ...widthStyle, position:'relative', opacity: isActive ? 1 : 0.45, transition:'opacity 0.2s' }}>
+        <FieldHeader label="Grinder" field="grinder" isActive={isActive} />
         {grindersLoading ? (
-          <select style={ms.input} disabled>
+          <select style={{ ...ms.input, ...ms.select }} disabled>
             <option>Loading…</option>
           </select>
         ) : grinderNames.length > 0 ? (
-          <select
-            style={ms.input}
+          <CustomSelect
             value={form['grinder']}
             onChange={e => set('grinder', e.target.value)}
             disabled={!isActive}
             required={isActive}
-          >
-            <option value="">Select grinder…</option>
-            {grinderNames.map(name => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
+            options={grinderNames}
+            placeholder="Select grinder…"
+          />
         ) : (
-          // Fallback to text input if collection is empty
-          <input
-            style={ms.input}
+          <FocusInput
             type="text"
             placeholder="Comandante…"
             value={form['grinder']}
@@ -185,23 +298,26 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
 
   return (
     <div style={ms.backdrop} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ ...ms.modal, maxWidth: '650px' }}>
+      <div style={{ ...ms.modal, maxWidth:'650px' }}>
+
+        {/* Header */}
         <div style={ms.header}>
           <div style={ms.headerLeft}><span style={ms.title}>Add Brew</span></div>
           <button style={ms.closeBtn} onClick={onClose}>✕</button>
         </div>
+
         {error && <div style={ms.errorBox}>{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div style={ms.grid}>
 
             {/* ══ DATE ══ */}
-            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Date</div></div>
+            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Date</div></div>
             {renderField("Brew Date", "date", "date", "", ms.fieldFull)}
 
             {/* ══ BEAN INFO ══ */}
-            <div style={{ width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ width:'100%' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div style={ms.sectionDivider}>Bean Info</div>
                 <button
                   type="button"
@@ -209,14 +325,9 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
                   style={{
                     background: showBeanPicker ? '#EFE9E4' : '#6D4C41',
                     color: showBeanPicker ? '#6D4C41' : '#fff',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '5px 13px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    marginBottom: '6px',
-                    transition: 'all 0.15s',
+                    border:'none', borderRadius:'20px',
+                    padding:'5px 13px', fontSize:'12px', fontWeight:600,
+                    cursor:'pointer', marginBottom:'6px', transition:'all 0.15s',
                   }}
                 >
                   {showBeanPicker ? '✕ Close' : 'Open Presets'}
@@ -225,7 +336,7 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
             </div>
 
             {showBeanPicker && (
-              <div style={{ width: '100%' }}>
+              <div style={{ width:'100%' }}>
                 <SavedBeansPicker
                   form={form}
                   regionPath={regionPath}
@@ -235,8 +346,7 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
               </div>
             )}
 
-            {/* Origin / region picker sits inside bean info */}
-            <div style={{ width: '100%' }}>
+            <div style={{ width:'100%' }}>
               <RegionPicker
                 allRegionDocs={localDocs}
                 value={regionPath}
@@ -245,40 +355,40 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
               />
             </div>
 
-            {renderField("Beans",          "beans",       "text",   "Roaster / Label",  ms.fieldHalf)}
-            {renderField("Variety",        "variety",     "text",   "Geisha, Bourbon…", ms.fieldHalf)}
-            {renderField("Processing",     "processing",  "select", "",                 ms.fieldThird, PROCESSING_METHODS)}
-            {renderField("Roast Level",    "roastLevel",  "select", "",                 ms.fieldThird, ROAST_LEVELS)}
-            {renderField("Roasting Date",  "roastingDate","date",   "",                 ms.fieldThird)}
+            {renderField("Beans",          "beans",        "text",   "Roaster / Label",  ms.fieldHalf)}
+            {renderField("Variety",        "variety",      "text",   "Geisha, Bourbon…", ms.fieldHalf)}
+            {renderField("Processing",     "processing",   "select", "",                 ms.fieldThird, PROCESSING_METHODS)}
+            {renderField("Roast Level",    "roastLevel",   "select", "",                 ms.fieldThird, ROAST_LEVELS)}
+            {renderField("Roasting Date",  "roastingDate", "date",   "",                 ms.fieldThird)}
 
             {/* ══ BREW SETUP ══ */}
-            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Brew Setup</div></div>
-            {renderField("Brew Method",  "method",             "select", "",    ms.fieldThird, BREW_METHODS)}
-            {renderField("Coffee (g)",   "groundCoffeeWeight", "number", "15",  ms.fieldThird)}
-            {renderField("Water (ml)",   "waterIn",            "number", "250", ms.fieldThird)}
-            {renderField("Temp (°C)",    "waterTemp",          "number", "93",  ms.fieldThird)}
-            {renderField("Brew Time",    "brewTime",           "text",   "2:30",ms.fieldThird)}
+            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Brew Setup</div></div>
+            {renderField("Brew Method",    "method",             "select", "",     ms.fieldThird, BREW_METHODS)}
+            {renderField("Coffee (g)",     "groundCoffeeWeight", "number", "15",   ms.fieldThird)}
+            {renderField("Water (ml)",     "waterIn",            "number", "250",  ms.fieldThird)}
+            {renderField("Temp (°C)",      "waterTemp",          "number", "93",   ms.fieldThird)}
+            {renderField("Brew Time",      "brewTime",           "text",   "2:30", ms.fieldThird)}
             {renderGrinderField(ms.fieldThird)}
-            {renderField("Grind Setting", "grindSetting", "text", "20 clicks",  ms.fieldThird)}
+            {renderField("Grind Setting",  "grindSetting",       "text",   "20 clicks", ms.fieldThird)}
 
             {/* ══ TASTING ══ */}
-            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Tasting</div></div>
-            <div style={{ width: '100%', opacity: activeFeatures.flavorTags ? 1 : 0.4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={ms.label}>Flavor Tags {activeFeatures.flavorTags && <span style={ms.required}>*</span>}</label>
-                <button type="button" onClick={() => toggleFeature('flavorTags')} style={{ ...ms.deactivateIcon, color: activeFeatures.flavorTags ? '#8D6E63' : '#BF360C' }}>
-                  {activeFeatures.flavorTags ? '✕' : '+'}
-                </button>
+            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Tasting</div></div>
+            <div style={{ width:'100%', opacity: activeFeatures.flavorTags ? 1 : 0.45, transition:'opacity 0.2s' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+                <label style={ms.label}>
+                  Flavor Tags{activeFeatures.flavorTags && <span style={ms.required}> *</span>}
+                </label>
+                <Toggle active={activeFeatures.flavorTags} onToggle={() => toggleFeature('flavorTags')} />
               </div>
               {activeFeatures.flavorTags
                 ? <FlavorPicker selectedFlavors={form.flavorTags} onChange={tags => set('flavorTags', tags)} />
-                : <div style={{ ...ms.input, color: '#BCAAA4', fontSize: '12px' }}>Flavor tags disabled</div>
+                : <div style={{ ...ms.input, color:'#BCAAA4', fontSize:'12px' }}>Flavor tags disabled</div>
               }
             </div>
             {renderField("Tasting Notes", "notes", "textarea", "Body, finish, acidity…", ms.fieldFull)}
 
             {/* ══ RECIPE & NOTES ══ */}
-            <div style={{ width: '100%' }}><div style={ms.sectionDivider}>Recipe & Notes</div></div>
+            <div style={{ width:'100%' }}><div style={ms.sectionDivider}>Recipe & Notes</div></div>
             {renderField("Brewing Recipe", "brewingRecipe", "textarea", "Pour schedule: 0s bloom 45g, 45s +100g…", ms.fieldFull)}
             {renderField("Extra Notes",    "extra",         "textarea", "Water recipe, equipment notes…",           ms.fieldFull)}
 
@@ -286,11 +396,10 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
 
           <div style={ms.actions}>
             <button type="button" style={ms.cancelBtn} onClick={onClose}>Cancel</button>
-            <button type="submit" style={ms.submitBtn} disabled={submitting}>
-              {submitting ? 'Saving...' : '+ Save Brew'}
-            </button>
+            <SubmitButton submitting={submitting} />
           </div>
         </form>
+
       </div>
     </div>
   );

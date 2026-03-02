@@ -125,8 +125,9 @@ export const getFlavorEmoji = (word) => FLAVOR_EMOJI_MAP[word?.toLowerCase()] ||
 // ── Form constants ────────────────────────────────────────────────────────────
 
 export const BREW_METHODS       = ['V60','Chemex','AeroPress','French Press','Espresso','Moka Pot','Cold Brew','Siphon','Other'];
-export const PROCESSING_METHODS = ['Natural','Washed','Honey','Anaerobic','Wet-Hulled','Semi-Washed','Other'];
-export const ROAST_LEVELS       = ['Light','Light-Medium','Medium','Medium-Dark','Dark','Extra Dark'];
+export const PROCESSING_METHODS = ['Natural','Washed','Honey','Anaerobic','Double Anaerobic','Wet-Hulled','Semi-Washed','Other'];
+export const ROAST_LEVELS       = ['Very-Light','Light','Moderately-Light','Light-Medium','Medium','Medium-Dark','Dark','Very Dark'];
+
 
 export const INITIAL_FEATURES = {
   date:true, beans:true, variety:true, processing:true, roastLevel:true,
@@ -155,17 +156,83 @@ export const ms = {
   title:          { fontSize:'16px', fontWeight:'700', color:'#F5E6D3', letterSpacing:'0.2px' },
   closeBtn:       { background:'rgba(255,255,255,0.12)', border:'none', borderRadius:'6px', color:'#D4A574', width:'28px', height:'28px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'13px', fontWeight:'700' },
   errorBox:       { background:'#FFF3E0', border:'1px solid #FFCC80', borderRadius:0, padding:'10px 24px', fontSize:'13px', color:'#E65100', fontWeight:'500' },
-  sectionDivider: { fontSize:'10px', fontWeight:'800', color:'#A1887F', textTransform:'uppercase', letterSpacing:'1.2px', borderBottom:'1px solid #EFEBE9', paddingBottom:'6px', marginTop:'4px' },
+
+  // ── Refreshed section divider: left accent bar ──
+  sectionDivider: {
+    fontSize:'10px', fontWeight:'800', color:'#8D6E63',
+    textTransform:'uppercase', letterSpacing:'1.4px',
+    borderLeft:'3px solid #D4A574', paddingLeft:'8px',
+    marginTop:'6px', marginBottom:'2px',
+  },
+
   grid:           { display:'flex', flexWrap:'wrap', gap:'14px', padding:'20px 24px' },
   fieldFull:      { width:'100%' },
   fieldHalf:      { width:'calc(50% - 7px)' },
   fieldThird:     { width:'calc(33.33% - 10px)', marginBottom:'2px' },
   label:          { display:'block', fontSize:'11px', fontWeight:'700', color:'#8D6E63', textTransform:'uppercase', letterSpacing:'0.6px', marginBottom:'6px' },
   required:       { color:'#BF360C' },
-  input:          { width:'100%', padding:'9px 12px', border:'1px solid #D7CCC8', borderRadius:'6px', fontSize:'13px', color:'#2C1810', background:'#FAFAFA', outline:'none', boxSizing:'border-box', fontFamily:'-apple-system, BlinkMacSystemFont, sans-serif', transition:'border-color 0.15s ease' },
+
+  // ── Standard text / number / date / textarea input ──
+  input: {
+    width:'100%', padding:'9px 12px',
+    border:'1px solid #D7CCC8', borderRadius:'8px',
+    fontSize:'13px', color:'#2C1810',
+    background:'#FDF8F4',
+    outline:'none', boxSizing:'border-box',
+    fontFamily:'-apple-system, BlinkMacSystemFont, sans-serif',
+    transition:'border-color 0.15s ease, box-shadow 0.15s ease',
+  },
+
+  // ── Custom select — chevron via background SVG, no OS arrow ──
+  // Usage: spread into <select> alongside ms.input, e.g. style={{ ...ms.input, ...ms.select }}
+  select: {
+    appearance:'none',
+    WebkitAppearance:'none',
+    MozAppearance:'none',
+    backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238D6E63' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+    backgroundRepeat:'no-repeat',
+    backgroundPosition:'right 12px center',
+    paddingRight:'36px',
+    cursor:'pointer',
+  },
+
   textarea:       { resize:'vertical', minHeight:'72px', lineHeight:'1.5' },
+
   actions:        { display:'flex', justifyContent:'flex-end', gap:'10px', padding:'16px 24px', borderTop:'1px solid #EFEBE9', background:'#FAF7F4', position:'sticky', bottom:0 },
-  cancelBtn:      { padding:'9px 18px', background:'transparent', border:'1px solid #D7CCC8', borderRadius:'6px', fontSize:'13px', fontWeight:'600', color:'#8D6E63', cursor:'pointer' },
-  submitBtn:      { padding:'9px 20px', background:'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', border:'none', borderRadius:'6px', fontSize:'13px', fontWeight:'700', color:'white', cursor:'pointer', boxShadow:'0 2px 8px rgba(93,64,55,0.3)' },
+  cancelBtn:      { padding:'9px 18px', background:'transparent', border:'none', borderRadius:'6px', fontSize:'13px', fontWeight:'600', color:'#8D6E63', cursor:'pointer', transition:'color 0.15s' },
+
+  // ── Submit button with hover lift (apply via onMouseEnter/Leave in component) ──
+  submitBtn: {
+    padding:'9px 20px',
+    background:'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
+    border:'none', borderRadius:'8px',
+    fontSize:'13px', fontWeight:'700', color:'white', cursor:'pointer',
+    boxShadow:'0 2px 8px rgba(93,64,55,0.3)',
+    transition:'transform 0.15s ease, box-shadow 0.15s ease',
+  },
+  submitBtnHover: {
+    transform:'translateY(-2px)',
+    boxShadow:'0 6px 18px rgba(93,64,55,0.4)',
+  },
+
+  // ── iOS-style pill toggle — used in AddBrewModal instead of ✕/+ buttons ──
+  // The toggle track: pass `active` boolean to compute bg dynamically
+  toggleTrack: (active) => ({
+    display:'inline-flex', alignItems:'center',
+    width:'34px', height:'20px', borderRadius:'10px',
+    background: active ? '#5D4037' : '#D7CCC8',
+    border:'none', cursor:'pointer', padding:'2px',
+    transition:'background 0.2s ease', flexShrink:0,
+    boxShadow: active ? 'inset 0 1px 3px rgba(0,0,0,0.25)' : 'inset 0 1px 2px rgba(0,0,0,0.12)',
+  }),
+  toggleThumb: (active) => ({
+    width:'16px', height:'16px', borderRadius:'50%',
+    background:'white',
+    boxShadow:'0 1px 4px rgba(0,0,0,0.25)',
+    transition:'transform 0.2s ease',
+    transform: active ? 'translateX(14px)' : 'translateX(0)',
+    flexShrink:0,
+  }),
+
   deactivateIcon: { background:'none', border:'none', color:'#D7CCC8', cursor:'pointer', fontSize:'10px', padding:'2px 5px', borderRadius:'4px', transition:'all 0.2s' },
 };
