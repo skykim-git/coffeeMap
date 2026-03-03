@@ -3,12 +3,13 @@
 
 /* Card-based layout for brew records on mobile */
 .brew-card-list {
-  display: flex;
+  display: none; /* Default to hidden */
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  overflow-y: auto;
-  flex: 1;
+  width: 100%;
+  min-height: 200px; /* Add a minimum height */
+  flex: 1 0 auto;    /* Allow it to grow and not shrink to 0 */
 }
 
 .brew-card {
@@ -93,34 +94,13 @@
 }
 
 @media (max-width: 768px) {
-  /* Hide the table on mobile */
-  .rawdata-table-wrap {
-    display: none !important;
-  }
-  /* Show card list on mobile */
   .brew-card-list {
     display: flex !important;
   }
-  /* Compact stats row */
-  .rawdata-stats-row {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .rawdata-stats-row::-webkit-scrollbar {
-    display: none;
-  }
-  /* Toolbar stacks */
-  .rawdata-toolbar-top {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-  }
-  .rawdata-search-wrap {
-    max-width: 100% !important;
-  }
-  .rawdata-col-panel {
-    display: none !important;
+  /* Ensure the root allows scrolling */
+  #root, .rawdata-root { 
+    height: auto; 
+    min-height: 100vh; 
   }
 }
 

@@ -157,7 +157,7 @@ export default function SavedBeansTab({ onSelectBean }) {
               <div style={st.grid}>
                 {filtered.map(bean => {
                   const isHovered = hoveredId === bean.id;
-                  const metaItems = [bean.variety, bean.processing, bean.roastLevel].filter(Boolean);
+                  const metaItems = [bean.variety, bean.processing, bean.roastLevel, bean.roastingDate].filter(Boolean);
                   const grinderLine = [bean.grinder, bean.grindSetting].filter(Boolean).join(' @ ');
 
                   return (

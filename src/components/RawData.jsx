@@ -723,7 +723,7 @@ function RawData({ onNavigateToRegion, allRegionDocs = [], beanFilter = null, on
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = {
-  root:        { height:'100%', display:'flex', flexDirection:'column', background:'#FAF7F4', fontFamily:'sans-serif', overflow:'hidden' },
+  root:        { height:'100%', display:'flex', flexDirection:'column', background:'#FAF7F4', fontFamily:'sans-serif', overflow:'auto' },
   header:      { display:'flex', padding:'14px 16px', background:'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', flexShrink:0 },
   headerLeft:  { display:'flex', alignItems:'center', gap:'12px' },
   headerTitle: { fontSize:'16px', fontWeight:'700', color:'#F5E6D3' },
@@ -731,10 +731,38 @@ const s = {
   filterBanner:      { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', background:'#FFF8E1', borderBottom:'1px solid #FFE082', flexShrink:0 },
   filterBannerText:  { fontSize:'13px', color:'#5D4037' },
   filterBannerClear: { padding:'5px 10px', background:'none', border:'1px solid #A1887F', borderRadius:'20px', fontSize:'12px', color:'#5D4037', cursor:'pointer', fontWeight:'600', whiteSpace:'nowrap' },
-  statsRow:    { display:'flex', background:'#D7CCC8', gap:'1px', flexShrink:0, overflowX:'auto' },
-  statCard:    { flex:'0 0 auto', minWidth:'80px', background:'#FFFDF9', padding:'10px 12px', textAlign:'center' },
-  statIcon:    { fontSize:'16px', marginBottom:'4px' },
-  statValue:   { fontSize:'16px', fontWeight:'800' },
+  statsRow: { 
+    display: 'flex', 
+    flexDirection: 'row',
+    flexWrap: 'nowrap', // Force them to stay in the same horizon
+    background: '#D7CCC8', 
+    gap: '1px', 
+    width: '100%',
+    overflowX: 'hidden' // Prevents the whole page from shaking
+  },
+
+  // statCard needs to be allowed to shrink
+  statCard: { 
+    flex: '1 1 0px',      // The "0px" allows cards to shrink smaller than their content
+    minWidth: '0',        // Crucial: allows the card to be narrower than the text/image inside
+    background: '#FFFDF9', 
+    padding: '8px 2px',   // Tighten padding for mobile
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+
+  // statIcon (the "images") should scale based on screen width
+  statIcon: { 
+    fontSize: 'clamp(14px, 4vw, 20px)', // Scales between 14px and 20px based on screen size
+    marginBottom: '2px' 
+  },
+
+  statValue: {
+    fontSize: 'clamp(10px, 3vw, 14px)', // Numbers get smaller on small screens
+    fontWeight: '800'
+  },
   statLabel:   { fontSize:'9px', fontWeight:'700', color:'#8D6E63', textTransform:'uppercase' },
   toolbar:     { padding:'10px 12px', background:'#FFFDF9', borderBottom:'1px solid #EFEBE9', display:'flex', flexDirection:'column', gap:'8px', flexShrink:0 },
   searchWrap:  { position:'relative' },

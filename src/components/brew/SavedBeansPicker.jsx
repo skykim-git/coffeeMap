@@ -125,7 +125,7 @@ const s = {
   },
 };
 
-const BEAN_FIELDS = ['beans', 'variety', 'processing', 'roastLevel', 'grinder', 'grindSetting'];
+const BEAN_FIELDS = ['beans', 'variety', 'processing', 'roastLevel', 'roastingDate', 'grinder', 'grindSetting'];
 
 // onApply(formPatch, regionDisplayPath | null, regionPathIds | null)
 export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, onApply }) {
