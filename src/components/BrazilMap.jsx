@@ -127,9 +127,6 @@ export default function BrazilMap() {
 
   const visibleLevels = () => {
     if (!selectedDoc) {
-      if (currentZoom >= 8) return ['town', 'subregion', 'region', 'country'];
-      if (currentZoom >= 6) return ['subregion', 'region'];
-      if (currentZoom >= 4) return ['region', 'country'];
       return ['country'];
     }
     const level = selectedDoc.level;
@@ -138,17 +135,15 @@ export default function BrazilMap() {
     return ['town', 'subregion'];
   };
 
+  
+
   const visibleDocs = mapDocs.filter(d => {
     if (!brewedDocIds.has(d.id)) return false;
     if (pinnedDoc && d.id === pinnedDoc.id) return true;
     if (!visibleLevels().includes(d.level)) return false;
     if (selectedDoc) {
-      let cur = byId[d.id];
-      while (cur) {
-        if (cur.parentId === selectedDoc.id) return true;
-        cur = cur.parentId ? byId[cur.parentId] : null;
-      }
-      return false;
+      // Only show direct children of selectedDoc (one level below)
+      return d.parentId === selectedDoc.id;
     }
     return true;
   });

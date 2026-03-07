@@ -22,7 +22,7 @@
 
 .brazil-map-container {
   width: 100%;
-  height: 90vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 320px 1fr;
   background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
@@ -612,13 +612,13 @@
   /* Full-height layout with room for both bars */
   .brazil-map-container {
     grid-template-columns: 1fr;
-    height: 90dvh; /* dynamic viewport height — handles iOS Safari chrome */
-    height: 90vh;
+    height: 95dvh; /* dynamic viewport height — handles iOS Safari chrome */
+    height: 95vh;
   }
 
   .main-content {
-    height: 90dvh;
-    height: 90vh;
+    height: 95dvh;
+    height: 95vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;

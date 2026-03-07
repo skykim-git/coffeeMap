@@ -6,8 +6,6 @@
 
 .App {
   width: 100vw;
-  height: 90vh;
+  height: 100vh;
   overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-sizing: border-box;
 }

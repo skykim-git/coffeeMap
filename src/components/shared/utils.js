@@ -145,7 +145,8 @@ export const ms = {
     display: 'flex',
     alignItems: 'flex-end',          // sheet slides up from bottom on mobile
     justifyContent: 'center',
-    overflowY: 'auto',
+    overflowX: 'hidden',    
+    touchAction: 'pan-y',     
   },
   modal: {
     background: '#FFFDF9',
@@ -156,8 +157,8 @@ export const ms = {
     overflow: 'hidden',
     animation: 'slideUp 0.25s ease',
     // On desktop (≥769px), override to centered modal via inline media query below
-    maxHeight: '92dvh',
-    maxHeight: '92vh',
+    maxHeight: '95dvh',
+    maxHeight: '95vh',
   },
   header: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
