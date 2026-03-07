@@ -612,13 +612,13 @@
   /* Full-height layout with room for both bars */
   .brazil-map-container {
     grid-template-columns: 1fr;
-    height: 100dvh; /* dynamic viewport height — handles iOS Safari chrome */
-    height: 100vh;
+    height: 90dvh; /* dynamic viewport height — handles iOS Safari chrome */
+    height: 90vh;
   }
 
   .main-content {
-    height: 100dvh;
-    height: 100vh;
+    height: 90dvh;
+    height: 90vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
