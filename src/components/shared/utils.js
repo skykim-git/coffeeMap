@@ -138,6 +138,7 @@ export const EMPTY_REGION_SEL = { countryId:'',regionId:'',subregionId:'',townId
 export const ms = {
   // Full-screen sheet on mobile, centered modal on desktop
   backdrop: {
+    width: '100%',
     position: 'fixed', inset: 0,
     background: 'rgba(20,10,4,0.65)',
     backdropFilter: 'blur(4px)',
