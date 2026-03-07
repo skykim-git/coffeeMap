@@ -172,16 +172,15 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
 
   const handleSave = async () => {
     const user = auth.currentUser;
-    if (!user || !saveName.trim()) return;
+    if (!user) return;
     setSaving(true);
     try {
-      const data = { label: saveName.trim(), createdAt: serverTimestamp() };
+      const data = { label: form.beans?.trim() || 'Unnamed Bean', createdAt: serverTimestamp() };
       BEAN_FIELDS.forEach(f => { data[f] = form[f] ?? null; });
       if (regionDisplayPath) data.regionPath    = regionDisplayPath;
       if (regionPath?.length) data.regionPathIds = regionPath;
       const ref = await addDoc(collection(db, 'users', user.uid, 'savedBeans'), data);
       setSavedBeans(prev => [{ id: ref.id, ...data }, ...prev]);
-      setSaveName('');
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2500);
     } catch (err) {
@@ -237,19 +236,10 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
           ) : (
             <p style={s.hint}>Fill in the bean fields below first, then come back to save as a preset.</p>
           )}
-          <label style={s.label}>Preset Name</label>
-          <input
-            style={s.input}
-            type="text"
-            placeholder="e.g. Ethiopia Yirgacheffe — Nomad"
-            value={saveName}
-            onChange={e => setSaveName(e.target.value)}
-          />
           <button
             type="button"
-            style={s.saveBtn(!!saveName.trim() && !saving)}
+            style={s.saveBtn(!saveName.trim() && !saving)}
             onClick={handleSave}
-            disabled={!saveName.trim() || saving}
           >
             {saving ? 'Saving…' : saveSuccess ? '✓ Saved!' : '+ Save Bean Preset'}
           </button>
