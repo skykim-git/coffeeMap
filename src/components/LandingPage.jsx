@@ -110,7 +110,6 @@ const styles = {
   root: {
     position: 'relative',
     width: '100%',
-    minHeight: '100vh',
     minHeight: '100dvh',
     backgroundColor: '#fcfaf8',
     color: '#2C1810',

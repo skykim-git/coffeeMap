@@ -207,7 +207,7 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
 
           {error && <div style={ms.errorBox}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={{ overflowY: 'auto', maxHeight: 'calc(92dvh - 120px)', maxHeight: 'calc(92vh - 120px)' }}>
+          <form onSubmit={handleSubmit} style={{ overflowY: 'auto', maxHeight: 'calc(92dvh - 120px)'}}>
             <div style={ms.grid}>
 
               {/* ── DATE ── */}

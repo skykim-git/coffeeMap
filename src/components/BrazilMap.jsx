@@ -74,6 +74,27 @@ export default function BrazilMap() {
     return () => unsubscribe();
   }, []);
 
+// ── On mobile, auto-zoom to most recent brew's country on initial load ────
+useEffect(() => {
+  if (brewsLoading || brewRecords.length === 0 || allRegionDocs.length === 0) return;
+  if (window.innerWidth > 1024) return;
+
+  const mostRecent = [...brewRecords].sort((a, b) =>
+    (b.date ?? '').localeCompare(a.date ?? '')
+  )[0];
+  if (!mostRecent?.regionRef) return;
+
+  // Walk up to the country level
+  let cur = byId[mostRecent.regionRef];
+  while (cur && cur.level !== 'country') {
+    cur = cur.parentId ? byId[cur.parentId] : null;
+  }
+  if (cur) {
+    setSelectedDoc(cur);
+    setPinnedDoc(null);
+  }
+}, [brewsLoading, brewRecords, allRegionDocs]);
+
   // ── Derived data ───────────────────────────────────────────────────────────
 
   const { byId } = useMemo(() => buildRegionTree(allRegionDocs), [allRegionDocs]);
@@ -187,11 +208,28 @@ export default function BrazilMap() {
 
   const handleClearBeanFilter = () => setBeanFilter(null);
 
-  const handleSetActiveTab = (tab) => {
-    if (tab !== 'raw-data') setBeanFilter(null);
-    setActiveTab(tab);
-  };
+const handleSetActiveTab = (tab) => {
+  if (tab !== 'raw-data') setBeanFilter(null);
+  setActiveTab(tab);
 
+  if (tab === 'coffee-map' && window.innerWidth <= 1024 && brewRecords.length > 0) {
+    const mostRecent = [...brewRecords].sort((a, b) =>
+      (b.date ?? '').localeCompare(a.date ?? '')
+    )[0];
+    if (!mostRecent?.regionRef) return;
+
+    let cur = byId[mostRecent.regionRef];
+    while (cur && cur.level !== 'country') {
+      cur = cur.parentId ? byId[cur.parentId] : null;
+    }
+    if (cur) {
+      setTimeout(() => {
+        setSelectedDoc(cur);
+        setPinnedDoc(null);
+      }, 150);
+    }
+  }
+};
   // ── Tab content ────────────────────────────────────────────────────────────
 
   const renderTabContent = () => {
@@ -322,7 +360,6 @@ export default function BrazilMap() {
           activeTab={activeTab}
           onBack={handleBackToMap}
           onAddBrew={() => setShowBrewModal(true)}
-          onToggleSidebar={() => setSidebarOpen(v => !v)}
           setActiveTab={handleSetActiveTab}
         />
 

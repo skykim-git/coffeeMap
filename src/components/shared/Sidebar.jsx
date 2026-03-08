@@ -59,7 +59,6 @@ export function Sidebar({
     <>
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <button className="sidebar-back-button" onClick={onClose} title="Close Menu">←</button>
           <div className="logo">
             <div className="logo-icon">🌿</div>
             <div className="logo-text">
@@ -201,16 +200,10 @@ export function TopBar({ selectedDoc, byId, activeTab, onBack, onAddBrew, onTogg
       {/* Actions */}
       <div className="top-bar-actions">
         {selectedDoc && activeTab === 'coffee-map' && (
-          <button className="btn btn-secondary btn-icon-only" onClick={onBack} title="Back">
-            <span>←</span>
-            <span className="btn-label"> Back</span>
-          </button>
+          <button className="btn btn-secondary" onClick={onBack}>←</button>
         )}
         <button className="btn btn-primary btn-add-brew" onClick={onAddBrew} title="Add Brew">
           + <span className="btn-label">Add Brew</span>
-        </button>
-        <button className="btn btn-secondary btn-icon-only" onClick={onToggleSidebar} title="Menu / Stats">
-          <span>☰</span>
         </button>
         <button className="btn btn-secondary btn-icon-only" onClick={() => signOut(auth)} title="Sign out">
           <span>↪</span>

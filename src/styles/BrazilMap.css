@@ -409,22 +409,6 @@
 }
 
 /* ========================================
-   SIDEBAR OVERLAY & BACK BUTTON
-   ======================================== */
-
-.sidebar-overlay {
-  display: none;
-}
-
-.sidebar-back-button {
-  display: flex;
-  /* ... */
-  margin: 0;      /* ← now inline in the header, no extra margin needed */
-  flex-shrink: 0;
-  /* ... */
-}
-
-/* ========================================
    POPUP STYLES
    ======================================== */
 
@@ -537,19 +521,11 @@
   }
 
   .sidebar {
-    height: 100vh;
-    height: 100dvh;
-    position: fixed;
-    left: -100%;
-    width: min(320px, 85vw);
-    height: 100vh;
-    top: 0;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 2000;
+    display: none;
   }
 
   .sidebar.open {
-    left: 0;
+    display: none;
   }
 
   .sidebar-overlay {
@@ -565,37 +541,18 @@
     pointer-events: none;
     transition: opacity 0.3s;
   }
-
-  .sidebar.open ~ .sidebar-overlay,
-  .sidebar-overlay.show {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .sidebar-back-button {
-    display: flex;
-    background: white;
-    border: 2px solid var(--coffee-medium);
-    color: var(--coffee-medium);
-    padding: 0;
-    margin: 16px;
-    border-radius: 8px;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.2s;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-  }
-
+  
   .top-bar {
     padding: 0 16px;
   }
 
   .btn {
-    padding: 8px 14px;
-    font-size: 13px;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .top-bar-actions {
+    gap: 8px;
   }
 }
 
@@ -847,5 +804,11 @@
   .btn-add-brew {
     font-size: 12px;
     padding: 0 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mobile-hidden {
+    display: none;
   }
 }

@@ -792,7 +792,7 @@ const s = {
   noRegionCloseBtn: { background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'13px', color:'#F5E6D3' },
   noRegionBody:     { padding:'32px 24px', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center' },
   backdrop:    { position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:'16px' },
-  editModal:   { background:'white', borderRadius:'12px', width:'min(560px, 100%)', maxHeight:'88dvh', maxHeight:'88vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 60px rgba(0,0,0,0.25)', overflow:'hidden' },
+  editModal:   { background:'white', borderRadius:'12px', width:'min(560px, 100%)', maxHeight:'88dvh', display:'flex', flexDirection:'column', boxShadow:'0 24px 60px rgba(0,0,0,0.25)', overflow:'hidden' },
   editHeader:  { display:'flex', alignItems:'center', gap:'10px', padding:'14px 16px', borderBottom:'1px solid #EFEBE9', background:'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
   editBody:    { flex:1, overflowY:'auto', padding:'16px' },
   editGrid:    { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:'12px' },
