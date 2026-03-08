@@ -137,30 +137,8 @@ export const EMPTY_REGION_SEL = { countryId:'',regionId:'',subregionId:'',townId
 
 export const ms = {
   // Full-screen sheet on mobile, centered modal on desktop
-  backdrop: {
-    width: '100%',
-    position: 'fixed', inset: 0,
-    background: 'rgba(20,10,4,0.65)',
-    backdropFilter: 'blur(4px)',
-    zIndex: 1000,
-    display: 'flex',
-    alignItems: 'flex-end',          // sheet slides up from bottom on mobile
-    justifyContent: 'center',
-    overflowX: 'hidden',    
-    touchAction: 'pan-y',     
-  },
-  modal: {
-    background: '#FFFDF9',
-    borderRadius: '16px 16px 0 0',    // rounded top on mobile (sheet style)
-    width: '100%',
-    maxWidth: '650px',
-    boxShadow: '0 -8px 40px rgba(0,0,0,0.25)',
-    overflow: 'hidden',
-    animation: 'slideUp 0.25s ease',
-    // On desktop (≥769px), override to centered modal via inline media query below
-    maxHeight: '95dvh',
-    maxHeight: '95vh',
-  },
+  backdrop: { position:'fixed', inset:0, background:'rgba(20,10,4,0.65)', backdropFilter:'blur(4px)', zIndex:1000, overflowY:'auto', overflowX:'hidden', WebkitOverflowScrolling:'touch', paddingTop:'24px', paddingBottom:'24px', paddingLeft:'16px', paddingRight:'16px' },
+  modal:    { background:'#FFFDF9', borderRadius:'12px', width:'100%', maxWidth:'650px', boxShadow:'0 24px 64px rgba(0,0,0,0.35)', overflow:'hidden', animation:'slideDown 0.2s ease', marginLeft:'auto', marginRight:'auto' },
   header: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '16px 20px',
@@ -210,7 +188,7 @@ export const ms = {
 
   textarea: { resize: 'vertical', minHeight: '80px', lineHeight: '1.5' },
 
-  actions:    { display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '14px 20px', borderTop: '1px solid #EFEBE9', background: '#FAF7F4', position: 'sticky', bottom: 0 },
+  actions: { display:'flex', justifyContent:'flex-end', gap:'10px', padding:'16px 24px 32px', borderTop:'1px solid #EFEBE9', background:'#FAF7F4', position:'sticky', bottom:0, zIndex:5 },
   cancelBtn:  { padding: '11px 18px', background: 'transparent', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', color: '#8D6E63', cursor: 'pointer', minHeight: '44px' },
 
   submitBtn: {
