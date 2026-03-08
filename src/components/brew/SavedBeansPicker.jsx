@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../../firebase/config';
 
 const s = {
@@ -73,6 +73,51 @@ const s = {
     flexShrink: 0,
     lineHeight: 1,
   },
+  editBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#BCAAA4',
+    fontSize: '13px',
+    padding: '0 4px',
+    flexShrink: 0,
+    lineHeight: 1,
+  },
+  editPanel: {
+    background: '#F5F0ED',
+    borderRadius: '8px',
+    padding: '10px',
+    marginBottom: '6px',
+  },
+  editRow: {
+    marginBottom: '6px',
+  },
+  editActions: {
+    display: 'flex',
+    gap: '6px',
+    marginTop: '8px',
+  },
+  editSaveBtn: {
+    flex: 1,
+    padding: '7px',
+    background: '#5D4037',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  editCancelBtn: {
+    padding: '7px 12px',
+    background: 'transparent',
+    color: '#8D6E63',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
   empty: {
     textAlign: 'center',
     color: '#BCAAA4',
@@ -126,6 +171,16 @@ const s = {
 };
 
 const BEAN_FIELDS = ['beans', 'variety', 'processing', 'roastLevel', 'roastingDate', 'grinder', 'grindSetting'];
+const EDIT_FIELDS = [
+  ['label',       'Preset Name'],
+  ['beans',       'Bean / Roaster'],
+  ['variety',     'Variety'],
+  ['processing',  'Processing'],
+  ['roastLevel',  'Roast Level'],
+  ['roastingDate','Roasting Date'],
+  ['grinder',     'Grinder'],
+  ['grindSetting','Grind Setting'],
+];
 
 // onApply(formPatch, regionDisplayPath | null, regionPathIds | null)
 export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, onApply }) {
@@ -133,9 +188,12 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
   const [savedBeans, setSavedBeans]   = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedId, setSelectedId]   = useState(null);
-  const [saveName, setSaveName]       = useState('');
   const [saving, setSaving]           = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [editingId, setEditingId]     = useState(null);
+  const [editForm, setEditForm]       = useState({});
+  const [editSaving, setEditSaving]   = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -168,6 +226,35 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
     await deleteDoc(doc(db, 'users', user.uid, 'savedBeans', beanId));
     setSavedBeans(prev => prev.filter(b => b.id !== beanId));
     if (selectedId === beanId) setSelectedId(null);
+  };
+
+  const startEdit = (e, bean) => {
+    e.stopPropagation();
+    setEditingId(bean.id);
+    setEditForm({
+      label:        bean.label        ?? '',
+      beans:        bean.beans        ?? '',
+      variety:      bean.variety      ?? '',
+      processing:   bean.processing   ?? '',
+      roastLevel:   bean.roastLevel   ?? '',
+      roastingDate: bean.roastingDate ?? '',
+      grinder:      bean.grinder      ?? '',
+      grindSetting: bean.grindSetting ?? '',
+    });
+  };
+
+  const handleEditSave = async (beanId) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    setEditSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid, 'savedBeans', beanId), editForm);
+      setSavedBeans(prev => prev.map(b => b.id === beanId ? { ...b, ...editForm } : b));
+      setEditingId(null);
+    } catch (err) {
+      console.error('Failed to update bean', err);
+    }
+    setEditSaving(false);
   };
 
   const handleSave = async () => {
@@ -213,15 +300,64 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
             <span style={{ fontSize: '11px' }}>Fill in the bean fields, then switch to "Save Current Bean".</span>
           </div>
         ) : savedBeans.map(bean => (
-          <div key={bean.id} style={s.card(selectedId === bean.id)} onClick={() => handleApply(bean)}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={s.cardName}>{bean.label}</div>
-              {bean.beans && bean.beans !== bean.label && <div style={s.cardMeta}>{bean.beans}</div>}
-              {metaLine(bean)    && <div style={s.cardMeta}>{metaLine(bean)}</div>}
-              {grinderLine(bean) && <div style={s.cardMeta}>🫙 {grinderLine(bean)}</div>}
-              {bean.regionPath   && <div style={s.locationBadge}>📍 {bean.regionPath}</div>}
-            </div>
-            <button type="button" style={s.deleteBtn} onClick={(e) => handleDelete(e, bean.id)} title="Delete preset">🗑</button>
+          <div key={bean.id}>
+            {editingId === bean.id ? (
+              <div style={s.editPanel}>
+                {EDIT_FIELDS.map(([field, label]) => (
+                  <div key={field} style={s.editRow}>
+                    <label style={s.label}>{label}</label>
+                    <input
+                      style={s.input}
+                      value={editForm[field]}
+                      onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+                <div style={s.editActions}>
+                  <button
+                    type="button"
+                    style={s.editCancelBtn}
+                    onClick={() => setEditingId(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    style={s.editSaveBtn}
+                    onClick={() => handleEditSave(bean.id)}
+                    disabled={editSaving}
+                  >
+                    {editSaving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={s.card(selectedId === bean.id)} onClick={() => handleApply(bean)}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={s.cardName}>{bean.label}</div>
+                  {bean.beans && bean.beans !== bean.label && <div style={s.cardMeta}>{bean.beans}</div>}
+                  {metaLine(bean)    && <div style={s.cardMeta}>{metaLine(bean)}</div>}
+                  {grinderLine(bean) && <div style={s.cardMeta}>🫙 {grinderLine(bean)}</div>}
+                  {bean.regionPath   && <div style={s.locationBadge}>📍 {bean.regionPath}</div>}
+                </div>
+                <button
+                  type="button"
+                  style={s.editBtn}
+                  onClick={(e) => startEdit(e, bean)}
+                  title="Edit preset"
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  style={s.deleteBtn}
+                  onClick={(e) => handleDelete(e, bean.id)}
+                  title="Delete preset"
+                >
+                  🗑
+                </button>
+              </div>
+            )}
           </div>
         ))
       )}
@@ -238,8 +374,9 @@ export default function SavedBeansPicker({ form, regionPath, regionDisplayPath, 
           )}
           <button
             type="button"
-            style={s.saveBtn(!saveName.trim() && !saving)}
+            style={s.saveBtn(!saving)}
             onClick={handleSave}
+            disabled={saving}
           >
             {saving ? 'Saving…' : saveSuccess ? '✓ Saved!' : '+ Save Bean Preset'}
           </button>

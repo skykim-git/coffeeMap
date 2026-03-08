@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
+
+const EDIT_FIELDS = [
+  ['label',        'Preset Name'],
+  ['beans',        'Bean / Roaster'],
+  ['variety',      'Variety'],
+  ['processing',   'Processing'],
+  ['roastLevel',   'Roast Level'],
+  ['roastingDate', 'Roasting Date'],
+  ['grinder',      'Grinder'],
+  ['grindSetting', 'Grind Setting'],
+];
 
 const st = {
   root: {
@@ -62,11 +73,17 @@ const st = {
     fontSize: '11px', fontWeight: 600, padding: '3px 9px',
     borderRadius: '20px', background: '#EFE9E4', color: '#6D4C41',
   },
-  arrow: {
-    marginTop: 'auto', paddingTop: '10px',
-    fontSize: '12px', color: '#BCAAA4', fontWeight: 600,
-    display: 'flex', alignItems: 'center', gap: '4px',
+  cardActions: {
+    display: 'flex', gap: '6px', marginTop: '10px',
+    paddingTop: '10px', borderTop: '1px solid #F0EAE5',
   },
+  actionBtn: (variant) => ({
+    flex: 1, padding: '6px 8px', border: 'none', borderRadius: '8px',
+    fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+    background: variant === 'danger' ? '#FFEBEE' : '#EFE9E4',
+    color:      variant === 'danger' ? '#C62828' : '#6D4C41',
+    transition: 'all 0.15s',
+  }),
   empty: {
     textAlign: 'center', color: '#BCAAA4',
     fontSize: '15px', marginTop: '60px', lineHeight: 1.8,
@@ -74,6 +91,59 @@ const st = {
   loading: {
     textAlign: 'center', color: '#BCAAA4',
     fontSize: '14px', marginTop: '60px',
+  },
+
+  // ── Edit modal ──
+  modalBackdrop: {
+    position: 'fixed', inset: 0, background: 'rgba(20,10,4,0.6)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 2000, padding: '16px',
+  },
+  modalBox: {
+    background: '#FFFDF9', borderRadius: '12px', width: '100%',
+    maxWidth: '480px', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+    boxShadow: '0 24px 64px rgba(0,0,0,0.3)', overflow: 'hidden',
+  },
+  modalHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '16px 20px',
+    background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
+    flexShrink: 0,
+  },
+  modalTitle: { fontSize: '14px', fontWeight: 700, color: '#F5E6D3' },
+  modalCloseBtn: {
+    background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+    width: '28px', height: '28px', cursor: 'pointer', color: '#F5E6D3',
+    fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  modalBody: {
+    padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px',
+    overflowY: 'auto', flex: 1,
+  },
+  modalFooter: {
+    display: 'flex', justifyContent: 'flex-end', gap: '10px',
+    padding: '14px 20px', borderTop: '1px solid #EFEBE9', background: '#FAF7F4',
+    flexShrink: 0,
+  },
+  fieldLabel: {
+    fontSize: '11px', fontWeight: 700, color: '#8D6E63',
+    textTransform: 'uppercase', letterSpacing: '0.5px',
+    marginBottom: '4px', display: 'block',
+  },
+  fieldInput: {
+    width: '100%', padding: '8px 10px', border: '1px solid #D7CCC8',
+    borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box',
+    background: '#fff', outline: 'none',
+  },
+  cancelBtn: {
+    padding: '8px 16px', background: 'transparent', border: 'none',
+    color: '#8D6E63', fontWeight: 600, cursor: 'pointer', fontSize: '13px',
+  },
+  saveBtn: {
+    padding: '8px 20px',
+    background: 'linear-gradient(135deg, #5D4037, #2C1810)',
+    color: '#fff', border: 'none', borderRadius: '8px',
+    fontWeight: 700, cursor: 'pointer', fontSize: '13px',
   },
 };
 
@@ -83,6 +153,11 @@ export default function SavedBeansTab({ onSelectBean }) {
   const [search, setSearch]       = useState('');
   const [hoveredId, setHoveredId] = useState(null);
 
+  const [editingBean, setEditingBean]   = useState(null);
+  const [editForm, setEditForm]         = useState({});
+  const [editSaving, setEditSaving]     = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) { setBeans([]); setLoading(false); return; }
@@ -90,7 +165,6 @@ export default function SavedBeansTab({ onSelectBean }) {
         setLoading(true);
         const snap = await getDocs(collection(db, 'users', user.uid, 'savedBeans'));
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Sort newest first (same as SavedBeansPicker)
         list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setBeans(list);
       } catch (err) {
@@ -112,6 +186,52 @@ export default function SavedBeansTab({ onSelectBean }) {
       (b.processing || '').toLowerCase().includes(q)
     );
   }, [beans, search]);
+
+  const openEdit = (e, bean) => {
+    e.stopPropagation();
+    setEditForm({
+      label:        bean.label        ?? '',
+      beans:        bean.beans        ?? '',
+      variety:      bean.variety      ?? '',
+      processing:   bean.processing   ?? '',
+      roastLevel:   bean.roastLevel   ?? '',
+      roastingDate: bean.roastingDate ?? '',
+      grinder:      bean.grinder      ?? '',
+      grindSetting: bean.grindSetting ?? '',
+    });
+    setEditingBean(bean);
+  };
+
+  const handleEditSave = async () => {
+    const user = auth.currentUser;
+    if (!user || !editingBean) return;
+    setEditSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid, 'savedBeans', editingBean.id), editForm);
+      setBeans(prev => prev.map(b => b.id === editingBean.id ? { ...b, ...editForm } : b));
+      setEditingBean(null);
+    } catch (err) {
+      console.error('Failed to update bean', err);
+    }
+    setEditSaving(false);
+  };
+
+  const handleDelete = async (e, beanId) => {
+    e.stopPropagation();
+    if (confirmDeleteId !== beanId) {
+      setConfirmDeleteId(beanId);
+      return;
+    }
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'savedBeans', beanId));
+      setBeans(prev => prev.filter(b => b.id !== beanId));
+    } catch (err) {
+      console.error('Failed to delete bean', err);
+    }
+    setConfirmDeleteId(null);
+  };
 
   return (
     <div style={st.root}>
@@ -156,22 +276,21 @@ export default function SavedBeansTab({ onSelectBean }) {
             ) : (
               <div style={st.grid}>
                 {filtered.map(bean => {
-                  const isHovered = hoveredId === bean.id;
-                  const metaItems = [bean.variety, bean.processing, bean.roastLevel, bean.roastingDate].filter(Boolean);
+                  const isHovered  = hoveredId === bean.id;
+                  const isConfirm  = confirmDeleteId === bean.id;
+                  const metaItems  = [bean.variety, bean.processing, bean.roastLevel].filter(Boolean);
                   const grinderLine = [bean.grinder, bean.grindSetting].filter(Boolean).join(' @ ');
 
                   return (
                     <div
                       key={bean.id}
                       style={{ ...st.card, ...(isHovered ? st.cardHover : {}) }}
-                      onClick={() => onSelectBean(bean)}
+                      onClick={() => { setConfirmDeleteId(null); onSelectBean(bean); }}
                       onMouseEnter={() => setHoveredId(bean.id)}
-                      onMouseLeave={() => setHoveredId(null)}
+                      onMouseLeave={() => { setHoveredId(null); setConfirmDeleteId(null); }}
                     >
-                      {/* Preset label — the name given in SavedBeansPicker */}
                       <div style={st.cardLabel}>{bean.label}</div>
 
-                      {/* Roaster/bean name if different from label */}
                       {bean.beans && bean.beans !== bean.label && (
                         <div style={st.cardBeans}>{bean.beans}</div>
                       )}
@@ -194,7 +313,20 @@ export default function SavedBeansTab({ onSelectBean }) {
                         </div>
                       )}
 
-                      <div style={st.arrow}>View brews →</div>
+                      <div style={st.cardActions} onClick={e => e.stopPropagation()}>
+                        <button
+                          style={st.actionBtn('default')}
+                          onClick={(e) => openEdit(e, bean)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          style={st.actionBtn(isConfirm ? 'danger' : 'default')}
+                          onClick={(e) => handleDelete(e, bean.id)}
+                        >
+                          {isConfirm ? '⚠️ Confirm' : '🗑 Delete'}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -203,6 +335,38 @@ export default function SavedBeansTab({ onSelectBean }) {
           </>
         )}
       </div>
+
+      {/* ── Edit Modal ── */}
+      {editingBean && (
+        <div style={st.modalBackdrop} onClick={e => e.target === e.currentTarget && setEditingBean(null)}>
+          <div style={st.modalBox}>
+            <div style={st.modalHeader}>
+              <span style={st.modalTitle}>✏️ Edit Bean Preset</span>
+              <button style={st.modalCloseBtn} onClick={() => setEditingBean(null)}>✕</button>
+            </div>
+            <div style={st.modalBody}>
+              {EDIT_FIELDS.map(([field, label]) => (
+                <div key={field}>
+                  <label style={st.fieldLabel}>{label}</label>
+                  <input
+                    style={st.fieldInput}
+                    value={editForm[field] ?? ''}
+                    onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                    onFocus={e => (e.target.style.borderColor = '#A1887F')}
+                    onBlur={e => (e.target.style.borderColor = '#D7CCC8')}
+                  />
+                </div>
+              ))}
+            </div>
+            <div style={st.modalFooter}>
+              <button style={st.cancelBtn} onClick={() => setEditingBean(null)}>Cancel</button>
+              <button style={st.saveBtn} onClick={handleEditSave} disabled={editSaving}>
+                {editSaving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
