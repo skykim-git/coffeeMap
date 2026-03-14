@@ -151,7 +151,8 @@ export default function SavedBeansTab({ onSelectBean }) {
   const [beans, setBeans]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
-  const [hoveredId, setHoveredId] = useState(null);
+  const [hoveredId, setHoveredId]       = useState(null);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const [editingBean, setEditingBean]   = useState(null);
   const [editForm, setEditForm]         = useState({});
@@ -252,14 +253,17 @@ export default function SavedBeansTab({ onSelectBean }) {
           <>
             <div style={st.searchWrap}>
               <span style={st.searchIcon}>🔍</span>
-              <input
-                style={st.searchInput}
-                placeholder="Search by name, origin, variety…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onFocus={e => (e.target.style.borderColor = '#A1887F')}
-                onBlur={e => (e.target.style.borderColor = '#D7CCC8')}
-              />
+                <input
+                  style={{
+                    ...st.searchInput,
+                    border: searchFocused ? '1.5px solid #A1887F' : '1.5px solid #D7CCC8',
+                  }}
+                  placeholder="Search by name, origin, variety…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                />
             </div>
 
             <div style={st.resultCount}>

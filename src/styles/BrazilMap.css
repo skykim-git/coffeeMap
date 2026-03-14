@@ -12,13 +12,7 @@
   --caramel: #D4A574;
   --gradient-start: #6F4E37;
   --gradient-end: #432818;
-  --bottom-bar-height: 64px;
-  --top-bar-height: 56px;
 }
-
-/* ========================================
-   BASE LAYOUT
-   ======================================== */
 
 .brazil-map-container {
   width: 100%;
@@ -31,7 +25,7 @@
 }
 
 /* ========================================
-   SIDEBAR (desktop)
+   SIDEBAR
    ======================================== */
 
 .sidebar {
@@ -46,12 +40,9 @@
 }
 
 .sidebar-header {
-  padding: 24px;
+  padding: 32px 24px;
   border-bottom: 1px solid rgba(93, 64, 55, 0.1);
   background: linear-gradient(135deg, var(--cream) 0%, #fff 100%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .logo {
@@ -69,9 +60,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
   box-shadow: 0 4px 12px rgba(93, 64, 55, 0.2);
-  flex-shrink: 0;
 }
 
 .logo-text h1 {
@@ -122,7 +111,7 @@
   font-weight: 600;
 }
 
-/* Navigation Tabs (desktop sidebar) */
+/* Navigation Tabs */
 .nav-tabs {
   padding: 0 24px;
   margin-top: 8px;
@@ -144,7 +133,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
 }
 
 .sidebar-tab:hover {
@@ -159,7 +147,9 @@
 }
 
 .tab-icon {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* Regions List */
@@ -197,7 +187,7 @@
 .region-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: start;
   margin-bottom: 8px;
 }
 
@@ -220,7 +210,6 @@
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .region-subregions {
@@ -249,25 +238,19 @@
   display: flex;
   flex-direction: column;
   background: var(--cream);
-  overflow: hidden;
 }
-
-/* ========================================
-   TOP BAR
-   ======================================== */
 
 .top-bar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  padding: 0 32px;
-  height: var(--top-bar-height);
+  padding: 14px 32px;
   border-bottom: 1px solid rgba(93, 64, 55, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   z-index: 100;
-  flex-shrink: 0;
+  min-height: 60px;
 }
 
 .breadcrumb {
@@ -276,33 +259,29 @@
   gap: 8px;
   font-size: 14px;
   color: var(--coffee-light);
-  overflow: hidden;
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 .breadcrumb-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .breadcrumb-home {
   color: var(--coffee-medium);
   font-weight: 600;
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .breadcrumb-current {
   color: var(--coffee-dark);
   font-weight: 700;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
 }
 
 .top-bar-actions {
@@ -312,9 +291,10 @@
   margin-left: 12px;
 }
 
-/* ========================================
-   BUTTONS
-   ======================================== */
+/* btn-label is the text inside each button — hidden on mobile */
+.btn-label {
+  display: inline;
+}
 
 .btn {
   padding: 9px 16px;
@@ -326,9 +306,15 @@
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
+  gap: 7px;
   white-space: nowrap;
+}
+
+/* btn-icon is the class on all top-bar buttons */
+.btn.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-secondary {
@@ -356,7 +342,6 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-  min-height: 0;
 }
 
 /* Custom Map Controls */
@@ -373,103 +358,207 @@
 .control-group {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   overflow: hidden;
 }
 
-.zoom-button {
-  width: 48px;
-  height: 48px;
-  border: none;
-  background: white;
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--coffee-medium);
-  transition: all 0.2s;
+.zoom-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.zoom-button:hover {
-  background: var(--latte);
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  font-size: 18px;
   color: var(--coffee-dark);
+  transition: background 0.2s;
 }
 
-.zoom-button:not(:last-child) {
+.zoom-btn:hover {
+  background: var(--latte);
+}
+
+.zoom-btn:first-child {
   border-bottom: 1px solid var(--latte);
 }
 
+.reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  color: var(--coffee-medium);
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: var(--latte);
+}
+
 /* ========================================
-   BOTTOM TAB BAR (mobile only — hidden on desktop)
+   FLAVOR TAGS
    ======================================== */
 
-.bottom-tab-bar {
+.flavor-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+.flavor-tag.citrus    { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+.flavor-tag.chocolate { background: linear-gradient(135deg, #8B4513 0%, #654321 100%); }
+.flavor-tag.fruity    { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+.flavor-tag.honey     { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+.flavor-tag.raspberry { background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%); }
+.flavor-tag.banana    { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
+.flavor-tag.caramel   { background: linear-gradient(135deg, #D4A574 0%, #b8860b 100%); }
+.flavor-tag.berry     { background: linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%); }
+.flavor-tag.texture   { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+.flavor-tag.intense   { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+.flavor-tag.banana    { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
+.flavor-tag.green     { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+.flavor-tag.apple     { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+.flavor-tag.grape     { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+.flavor-tag.mango     { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+.flavor-tag.describe  { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+.flavor-tag.acidic    { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+.flavor-tag.nutty     { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+.flavor-tag.pineapple { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
+.flavor-tag.tropical  { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+
+.flavor-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+   ======================================== */
+
+.sidebar-overlay {
   display: none;
 }
 
-/* ========================================
-   POPUP STYLES
-   ======================================== */
-
-.region-popup {
-  min-width: 200px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+.sidebar-back-button {
+  display: none;
 }
 
-.region-local {
-  font-size: 13px;
-  color: #666;
-  margin: 4px 0;
+@media (max-width: 1024px) {
+  .brazil-map-container {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -100%;
+    width: 320px;
+    height: 100vh;
+    transition: left 0.3s;
+    z-index: 2000;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .sidebar.open ~ .sidebar-overlay,
+  .sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sidebar-back-button {
+    display: flex;
+    background: white;
+    border: 2px solid var(--coffee-medium);
+    color: var(--coffee-medium);
+    padding: 0;
+    margin: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+  }
+
+  .sidebar-back-button:hover {
+    background: var(--cream);
+    transform: translateX(-2px);
+  }
+
+  /* ── Top bar: tighter on tablet ── */
+  .top-bar {
+    padding: 10px 16px;
+    min-height: 52px;
+  }
+
+  .top-bar-actions {
+    gap: 6px;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
 }
 
-.region-brews {
-  margin: 8px 0;
-  font-size: 14px;
-  color: var(--coffee-dark);
-  font-weight: 600;
-  padding: 8px;
-  background: var(--cream);
-  border-radius: 6px;
-}
+/* ── Icon-only buttons on small mobile ── */
+@media (max-width: 600px) {
+  .top-bar {
+    padding: 8px 12px;
+    min-height: 48px;
+  }
 
-.region-description {
-  margin: 8px 0;
-  font-size: 13px;
-  color: #666;
-  padding: 8px 0;
-  border-top: 1px solid #e5e7eb;
-}
+  /* Hide text labels — show icons only */
+  .btn-label {
+    display: none;
+  }
 
-.region-hint {
-  margin: 8px 0 0 0;
-  font-size: 11px;
-  color: #999;
-  font-style: italic;
-  text-align: center;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
-}
+  /* Make buttons compact square-ish icon buttons */
+  .btn.btn-icon {
+    padding: 8px;
+    min-width: 36px;
+    border-radius: 8px;
+    gap: 0;
+  }
 
-.flavor-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin: 8px 0;
-}
+  /* Hide breadcrumb text — keep the globe icon only */
+  .breadcrumb-text {
+    display: none;
+  }
 
-.flavor-tag {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: capitalize;
-  letter-spacing: 0.3px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  color: white;
-  display: inline-block;
-  white-space: nowrap;
+  .top-bar-actions {
+    gap: 4px;
+  }
 }
 
 /* ========================================
@@ -492,6 +581,11 @@
   border-radius: 10px;
 }
 
+.sidebar::-webkit-scrollbar-thumb:hover,
+.regions-list::-webkit-scrollbar-thumb:hover {
+  background: var(--coffee-medium);
+}
+
 /* ========================================
    LEAFLET OVERRIDES
    ======================================== */
@@ -509,306 +603,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* ========================================
-   TABLET: 768–1024px
-   ======================================== */
-
-@media (max-width: 1024px) {
-  .brazil-map-container {
-    grid-template-columns: 1fr;
-    height: 100vh;        /* fallback for older browsers */
-    height: 100dvh;       /* adjusts dynamically for mobile browser chrome */
-  }
-
-  .sidebar {
-    display: none;
-  }
-
-  .sidebar.open {
-    display: none;
-  }
-
-  .sidebar-overlay {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  
-  .top-bar {
-    padding: 0 16px;
-  }
-
-  .btn {
-    padding: 7px 12px;
-    font-size: 12px;
-  }
-
-  .top-bar-actions {
-    gap: 8px;
-  }
-}
-
-/* ========================================
-   MOBILE: 375–768px — Bottom Tab Bar
-   ======================================== */
-
-@media (max-width: 768px) {
-  :root {
-    --bottom-bar-height: 64px;
-    --top-bar-height: 52px;
-  }
-
-  /* Full-height layout with room for both bars */
-  .brazil-map-container {
-    grid-template-columns: 1fr;
-    height: 95dvh; /* dynamic viewport height — handles iOS Safari chrome */
-    height: 95vh;
-  }
-
-  .main-content {
-    height: 95dvh;
-    height: 95vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* ── Top Bar ── */
-  .top-bar {
-    padding: 0 12px;
-    height: var(--top-bar-height);
-    flex-shrink: 0;
-  }
-
-  .breadcrumb {
-    font-size: 12px;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .breadcrumb-home {
-    font-size: 12px;
-  }
-
-  .breadcrumb-current {
-    max-width: 100px;
-    font-size: 12px;
-  }
-
-  .top-bar-actions {
-    gap: 6px;
-    margin-left: 8px;
-  }
-
-  /* Hide sign out and menu button text on mobile — icon only */
-  .btn-icon-only .btn-label {
-    display: none;
-  }
-
-  .btn {
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    min-height: 40px;
-    border-radius: 10px;
-    justify-content: center;
-    font-size: 16px;
-  }
-
-  /* Add Brew keeps label but is compact */
-  .btn-add-brew {
-    width: auto;
-    padding: 0 12px;
-    font-size: 13px;
-    height: 40px;
-    min-height: 40px;
-  }
-
-  /* ── Map wrapper takes available space ── */
-  .map-wrapper {
-    flex: 1;
-    position: relative;
-    overflow: hidden; /* keep for map tab */
-  }
-
-  .map-wrapper.scrollable {
-    overflow-y: auto;  /* used by non-map tabs */
-  }
-
-  /* Move zoom controls above the bottom tab bar */
-  .custom-zoom-controls {
-    bottom: calc(var(--bottom-bar-height) + 16px);
-    right: 16px;
-  }
-
-  .zoom-button {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
-
-  /* ── Bottom Tab Bar ── */
-  .bottom-tab-bar {
-    display: flex;
-    align-items: stretch;
-    height: var(--bottom-bar-height);
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(93, 64, 55, 0.12);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-    z-index: 1500;
-    flex-shrink: 0;
-    /* Safe area inset for iPhone home indicator */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  .bottom-tab {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 8px 4px;
-    transition: background 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-  }
-
-  .bottom-tab:active {
-    background: var(--latte);
-  }
-
-  .bottom-tab.active::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 20%;
-    right: 20%;
-    height: 2px;
-    background: var(--coffee-medium);
-    border-radius: 0 0 2px 2px;
-  }
-
-  .bottom-tab-icon {
-    font-size: 22px;
-    line-height: 1;
-    transition: transform 0.15s;
-  }
-
-  .bottom-tab.active .bottom-tab-icon {
-    transform: scale(1.1);
-  }
-
-  .bottom-tab-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--coffee-light);
-    letter-spacing: 0.3px;
-    line-height: 1;
-  }
-
-  .bottom-tab.active .bottom-tab-label {
-    color: var(--coffee-medium);
-  }
-
-  /* ── Sidebar becomes full-width drawer on mobile ── */
-  .sidebar {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .sidebar-header {
-    padding: 20px 16px;
-  }
-
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .logo-text h1 {
-    font-size: 17px;
-  }
-
-  .stats-grid {
-    padding: 16px;
-    gap: 10px;
-  }
-
-  .stat-card {
-    padding: 12px;
-  }
-
-  .stat-number {
-    font-size: 22px;
-  }
-
-  .nav-tabs {
-    padding: 0 16px;
-  }
-
-  .regions-list {
-    padding: 16px;
-  }
-
-  .region-item {
-    padding: 14px;
-  }
-
-  .region-name {
-    font-size: 14px;
-  }
-
-  /* ── Popup fits on mobile ── */
-  .leaflet-popup-content-wrapper {
-    max-width: calc(100vw - 40px) !important;
-  }
-
-  .leaflet-popup-content {
-    margin: 12px !important;
-  }
-}
-
-/* ========================================
-   SMALL MOBILE: < 390px
-   ======================================== */
-
-@media (max-width: 390px) {
-  .bottom-tab-label {
-    font-size: 9px;
-  }
-
-  .bottom-tab-icon {
-    font-size: 20px;
-  }
-
-  .breadcrumb-current {
-    max-width: 80px;
-  }
-
-  .btn-add-brew {
-    font-size: 12px;
-    padding: 0 10px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .mobile-hidden {
-    display: none;
-  }
+.btn-primary {
+  background: linear-gradient(135deg, #5D4037, #2C1810);
+  color: white;
+  border-color: transparent;
 }

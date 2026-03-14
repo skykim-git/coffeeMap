@@ -5,6 +5,47 @@ import { onAuthStateChanged } from 'firebase/auth';
 import '../styles/ByNotes.css';
 import { buildRegionTree } from './shared/utils';
 
+// ─── SVG Icons ────────────────────────────────────────────────────────────────
+
+const IcSearch = ({ size = 18 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <circle cx="11" cy="11" r="7"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+);
+
+const IcNotes = ({ size = 40 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14,2 14,8 20,8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>
+);
+
+const IcCoffee = ({ size = 40 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
+    <line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/>
+  </svg>
+);
+
+const IcQuestion = ({ size = 32 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
+
+const IcCoffeeSmall = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="11" height="11">
+    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
+  </svg>
+);
+
 // ─── Stop words ───────────────────────────────────────────────────────────────
 const stopWords = new Set([
   'a','an','the','and','or','but','in','on','at','to','for','of','with','by',
@@ -18,94 +59,59 @@ const stopWords = new Set([
   'first','noticeable','compared','clear','strong','prominent','identify','texture','sip',
 ]);
 
-// ─── Flavor emoji ─────────────────────────────────────────────────────────────
-const getFlavorEmoji = (flavor) => {
-  const map = {
-    // Fruits
-    citrus: '🍊', lemon: '🍋', lime: '🍋', orange: '🍊',
-    fruity: '🍇', berry: '🫐', raspberry: '🫐', blueberry: '🫐',
-    strawberry: '🍓', cherry: '🍒', plum: '🍑', peach: '🍑',
-    apricot: '🍑', banana: '🍌', apple: '🍏', grape: '🍇',
-    mango: '🥭', pineapple: '🍍', tropical: '🌴', fig: '🌰',
-    date: '🌰', raisin: '🍇', prune: '🍇',
-
-    // Sweetness & Caramel
-    honey: '🍯', caramel: '🍮', toffee: '🍮', butterscotch: '🍮',
-    molasses: '🫙', brown_sugar: '🟤', vanilla: '🤍', maple: '🍁',
-    marshmallow: '☁️', candy: '🍬', sweet: '🍬',
-
-    // Chocolate & Roast
-    chocolate: '🍫', dark_chocolate: '🍫', milk_chocolate: '🍫',
-    cocoa: '🍫', cacao: '🍫', mocha: '☕', roasty: '🔥',
-    smoky: '💨', charcoal: '⬛', toasty: '🍞', burnt: '🔥',
-    tobacco: '🌿', leather: '🟫',
-
-    // Nuts & Grains
-    nutty: '🥜', almond: '🥜', hazelnut: '🥜', walnut: '🌰',
-    pecan: '🌰', peanut: '🥜', cashew: '🥜', malt: '🌾',
-    grain: '🌾', cereal: '🌾', oat: '🌾', bread: '🍞',
-    biscuit: '🍪', cookie: '🍪',
-
-    // Floral & Herbal
-    floral: '🌸', jasmine: '🌸', rose: '🌹', lavender: '💜',
-    hibiscus: '🌺', aroma: '🌺', fragrant: '🌺', elderflower: '🌼',
-    chamomile: '🌼', herbs: '🌿', green: '🌿', grassy: '🌿',
-    vegetal: '🥬', earthy: '🌍',
-
-    // Spice & Complex
-    spicy: '🌶️', cinnamon: '🫚', clove: '🫚', cardamom: '🫚',
-    pepper: '🌶️', anise: '⭐', licorice: '⭐', ginger: '🫚',
-
-    // Acidity & Body
-    acidic: '💧', bright: '✨', clean: '💧', crisp: '🧊',
-    intense: '🔥', bold: '💥', rich: '🏆', heavy: '⚖️',
-    light: '🪶', smooth: '🌊', velvety: '🌊', creamy: '🥛',
-    milky: '🥛', buttery: '🧈', silky: '🌊', winey: '🍷',
-
-    // Coffee-Specific Aromas
-    coffee: '☕', espresso: '☕', brew: '☕', roast: '🔥',
-    woody: '🪵', cedar: '🪵', oak: '🪵', pine: '🌲',
-    rubber: '⬛', musty: '🍂', fermented: '🫙', ferment: '🫙',
-    wine: '🍷', whiskey: '🥃', rum: '🥃', spirit: '🥃',
-  };
-  return map[flavor.toLowerCase().replace(/\s+/g, '_')] || '☕';
+// ─── Flavor palette ───────────────────────────────────────────────────────────
+const FLAVOR_PALETTE = {
+  citrus:'linear-gradient(135deg,#FFD700 0%,#FFA500 100%)',
+  chocolate:'linear-gradient(135deg,#8B4513 0%,#654321 100%)',
+  fruity:'linear-gradient(135deg,#e74c3c 0%,#c0392b 100%)',
+  berry:'linear-gradient(135deg,#6c5ce7 0%,#5f27cd 100%)',
+  raspberry:'linear-gradient(135deg,#e91e63 0%,#ad1457 100%)',
+  banana:'linear-gradient(135deg,#f1c40f 0%,#f39c12 100%)',
+  green:'linear-gradient(135deg,#2ecc71 0%,#27ae60 100%)',
+  apple:'linear-gradient(135deg,#2ecc71 0%,#27ae60 100%)',
+  grape:'linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%)',
+  mango:'linear-gradient(135deg,#f39c12 0%,#e67e22 100%)',
+  honey:'linear-gradient(135deg,#f39c12 0%,#e67e22 100%)',
+  caramel:'linear-gradient(135deg,#D4A574 0%,#b8860b 100%)',
+  nutty:'linear-gradient(135deg,#95a5a6 0%,#7f8c8d 100%)',
+  floral:'linear-gradient(135deg,#fd79a8 0%,#e84393 100%)',
+  aroma:'linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%)',
+  acidic:'linear-gradient(135deg,#3498db 0%,#2980b9 100%)',
+  intense:'linear-gradient(135deg,#e74c3c 0%,#c0392b 100%)',
+  tropical:'linear-gradient(135deg,#e67e22 0%,#d35400 100%)',
+  pineapple:'linear-gradient(135deg,#f1c40f 0%,#f39c12 100%)',
 };
+
+const getFlavorStyle = (word) =>
+  FLAVOR_PALETTE[word?.toLowerCase()] || 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Returns all brews linked to a regionDoc (directly via regionRef == doc.id)
-const getBrewsForDoc = (docId, brewRecords) =>
-  brewRecords.filter(b => b.regionRef === docId);
-
-// Extracts flavor notes from brews for a specific regionDoc
-const extractFlavorNotesForDoc = (docId, brewRecords) => {
-  const brews = getBrewsForDoc(docId, brewRecords);
-  if (!brews.length) return [];
-
-  const tagSet = {};
-  brews.forEach(brew => {
-    if (Array.isArray(brew.flavorTags)) {
-      brew.flavorTags.forEach(t => { tagSet[t] = (tagSet[t] || 0) + 1; });
-    }
-  });
-
-  const allNotes = brews.map(b => b.notes).filter(n => n && n !== '?').join(' ');
-  if (allNotes) {
-    allNotes.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/)
-      .filter(w => w.length > 2 && !stopWords.has(w) && !/^\d+$/.test(w))
-      .forEach(w => {
-        const cap = w.charAt(0).toUpperCase() + w.slice(1);
-        tagSet[cap] = (tagSet[cap] || 0) + 1;
-      });
-  }
-
-  return Object.entries(tagSet).sort((a,b) => b[1]-a[1]).slice(0,5).map(([w]) => w);
+const buildByIdMap = (docs) => {
+  const map = {};
+  docs.forEach(d => { map[d.id] = d; });
+  return map;
 };
 
-// Extracts all flavor words across all brews
-const extractAllFlavorWords = (brewRecords) => {
+const getBrewsForDoc = (docId, brews) =>
+  brews.filter(b => b.regionRef === docId);
+
+const extractFlavorNotesForDoc = (docId, brews) => {
+  const words = new Set();
+  brews.filter(b => b.regionRef === docId).forEach(brew => {
+    if (Array.isArray(brew.flavorTags)) brew.flavorTags.forEach(t => words.add(t));
+    if (brew.notes && brew.notes !== '?' && brew.notes.trim()) {
+      brew.notes.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/)
+        .filter(w => w.length > 2 && !stopWords.has(w) && !/^\d+$/.test(w))
+        .forEach(w => words.add(w.charAt(0).toUpperCase() + w.slice(1)));
+    }
+  });
+  return Array.from(words);
+};
+
+const extractAllFlavorWords = (brews) => {
   const allWords = {};
-  brewRecords.forEach(brew => {
+  brews.forEach(brew => {
     const tagWords = Array.isArray(brew.flavorTags) ? brew.flavorTags : [];
     const noteWords = (brew.notes && brew.notes !== '?' && brew.notes.trim())
       ? brew.notes.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/)
@@ -113,60 +119,65 @@ const extractAllFlavorWords = (brewRecords) => {
           .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       : [];
     [...new Set([...tagWords, ...noteWords])].forEach(word => {
-      if (!allWords[word]) allWords[word] = { word, count:0, regionRefs:new Set() };
+      if (!allWords[word]) allWords[word] = { word, count: 0, regionRefs: new Set() };
       allWords[word].count++;
       if (brew.regionRef) allWords[word].regionRefs.add(brew.regionRef);
     });
   });
   return Object.values(allWords)
     .map(item => ({ ...item, regionRefs: Array.from(item.regionRefs) }))
-    .sort((a,b) => b.count - a.count);
+    .sort((a, b) => b.count - a.count);
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 function ByNotes({ allRegionDocs = [] }) {
-  const [brewRecords, setBrewRecords] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [brewRecords, setBrewRecords]       = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [searchQuery, setSearchQuery]       = useState('');
   const [selectedFlavor, setSelectedFlavor] = useState(null);
 
-  // ── Fetch user's brews ─────────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) { setBrewRecords([]); setLoading(false); return; }
       try {
         const snapshot = await getDocs(collection(db, 'users', user.uid, 'brews'));
-        const brews = snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
-        brews.sort((a,b) => (a.date??'').localeCompare(b.date??''));
+        const brews = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        brews.sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
         setBrewRecords(brews);
       } catch (err) {
         console.error('ByNotes: failed to fetch brews', err);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  // ── Build region lookup ────────────────────────────────────────────────────
-  const { byId } = useMemo(() => buildRegionTree(allRegionDocs), [allRegionDocs]);
+  const byId = useMemo(() => buildByIdMap(allRegionDocs), [allRegionDocs]);
 
-  // All region docs that have at least one brew pointing to them
-  const brewedRegionDocs = useMemo(() => {
-    const refIds = new Set(brewRecords.map(b => b.regionRef).filter(Boolean));
-    return allRegionDocs.filter(d => refIds.has(d.id));
-  }, [allRegionDocs, brewRecords]);
+  const getAncestorName = (doc) => {
+    if (!doc.parentId) return null;
+    const parent = byId[doc.parentId];
+    if (!parent) return null;
+    if (!parent.parentId) return parent.name;
+    const grandparent = byId[parent.parentId];
+    return grandparent ? grandparent.name : parent.name;
+  };
 
   const allFlavorWords = useMemo(() => extractAllFlavorWords(brewRecords), [brewRecords]);
-  const topFlavors     = useMemo(() => allFlavorWords.slice(0, 12), [allFlavorWords]);
+  const topFlavors     = useMemo(() => allFlavorWords.slice(0, 16), [allFlavorWords]);
 
   const filteredFlavors = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return allFlavorWords.filter(item => item.word.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 10);
+    const q = searchQuery.toLowerCase();
+    return allFlavorWords.filter(item => item.word.toLowerCase().includes(q));
   }, [searchQuery, allFlavorWords]);
 
-  // Region docs that have the selected flavor in their extracted notes
+  const brewedRegionDocs = useMemo(() =>
+    allRegionDocs.filter(d => getBrewsForDoc(d.id, brewRecords).length > 0),
+    [allRegionDocs, brewRecords]
+  );
+
   const matchingDocs = useMemo(() => {
     if (!selectedFlavor) return [];
     return brewedRegionDocs.filter(doc => {
@@ -175,37 +186,32 @@ function ByNotes({ allRegionDocs = [] }) {
     });
   }, [selectedFlavor, brewedRegionDocs, brewRecords]);
 
-  // ── Helpers for display ────────────────────────────────────────────────────
-  const getAncestorName = (doc) => {
-    // Walk up to find country
-    let cur = doc.parentId ? byId[doc.parentId] : null;
-    const parts = [];
-    while (cur) { parts.unshift(cur.name); cur = cur.parentId ? byId[cur.parentId] : null; }
-    return parts.join(' › ');
-  };
-
-  // ── Loading ────────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div style={{ ...s.container, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ textAlign:'center', color:'#8D6E63' }}>
-          <div style={{ fontSize:'32px', marginBottom:'12px' }}>☕</div>
-          <div style={{ fontSize:'14px', fontWeight:'600' }}>Loading your tasting notes…</div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #EFEBE9', borderTopColor: '#5D4037', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+    </div>
+  );
 
   return (
     <div style={s.container}>
       <div style={s.content}>
 
-        {/* Search Bar */}
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--coffee-medium, #5D4037)', opacity: 0.75, marginBottom: '12px' }}>
+            <IcNotes size={40} />
+          </div>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#2C1810', margin: '0 0 8px', letterSpacing: '-0.5px' }}>Tasting Notes</h2>
+          <p style={{ fontSize: '1rem', color: '#8D6E63', margin: 0 }}>Explore your flavor discoveries across regions</p>
+        </div>
+
+        {/* Search */}
         <div style={s.searchContainer}>
           <div style={s.searchBox}>
-            <span style={s.searchIcon}>🔍</span>
+            <span style={{ display: 'flex', alignItems: 'center', color: '#8D6E63', flexShrink: 0 }}>
+              <IcSearch size={18} />
+            </span>
             <input
-              type="text"
               style={s.input}
               placeholder="Search flavors (e.g. Berry, Chocolate…)"
               value={searchQuery}
@@ -220,11 +226,11 @@ function ByNotes({ allRegionDocs = [] }) {
             <div style={s.dropdown}>
               {filteredFlavors.map((item, i) => (
                 <div key={i} style={s.dropdownItem}
-                  onMouseEnter={e => e.currentTarget.style.background='#FAF7F4'}
-                  onMouseLeave={e => e.currentTarget.style.background='white'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FAF7F4'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'white'}
                   onClick={() => { setSelectedFlavor(item.word); setSearchQuery(''); }}
                 >
-                  <span>{getFlavorEmoji(item.word)} {item.word}</span>
+                  <span>{item.word}</span>
                   <span style={s.countBadge}>{item.count}</span>
                 </div>
               ))}
@@ -232,7 +238,7 @@ function ByNotes({ allRegionDocs = [] }) {
           )}
           {searchQuery && filteredFlavors.length === 0 && (
             <div style={s.dropdown}>
-              <div style={{ padding:'14px 20px', color:'#BCAAA4', fontSize:'13px' }}>No flavors found for "{searchQuery}"</div>
+              <div style={{ padding: '14px 20px', color: '#BCAAA4', fontSize: '13px' }}>No flavors found for "{searchQuery}"</div>
             </div>
           )}
         </div>
@@ -244,8 +250,8 @@ function ByNotes({ allRegionDocs = [] }) {
             <div style={s.tagGrid}>
               {topFlavors.map((item, i) => (
                 <button key={i} onClick={() => setSelectedFlavor(item.word)}
-                  style={{ ...s.tag, ...(selectedFlavor === item.word ? s.activeTag : {}) }}>
-                  {getFlavorEmoji(item.word)} {item.word}
+                  style={{ ...s.tag, ...(selectedFlavor === item.word ? s.activeTag : {}), background: getFlavorStyle(item.word) }}>
+                  {item.word}
                 </button>
               ))}
             </div>
@@ -265,7 +271,7 @@ function ByNotes({ allRegionDocs = [] }) {
             {matchingDocs.length > 0 ? (
               <div style={s.cardGrid}>
                 {matchingDocs.map((doc, i) => {
-                  const notes    = extractFlavorNotesForDoc(doc.id, brewRecords);
+                  const notes     = extractFlavorNotesForDoc(doc.id, brewRecords);
                   const brewCount = getBrewsForDoc(doc.id, brewRecords).length;
                   const ancestorPath = getAncestorName(doc);
                   return (
@@ -278,8 +284,8 @@ function ByNotes({ allRegionDocs = [] }) {
                         </div>
                         <div>
                           <div style={s.typeBadge}>{doc.level}</div>
-                          <div style={{ ...s.typeBadge, marginTop:'4px', background:'#E8F5E9', color:'#2E7D32' }}>
-                            ☕ {brewCount}
+                          <div style={{ ...s.typeBadge, marginTop: '4px', background: '#E8F5E9', color: '#2E7D32', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <IcCoffeeSmall /> {brewCount}
                           </div>
                         </div>
                       </div>
@@ -290,7 +296,7 @@ function ByNotes({ allRegionDocs = [] }) {
                               ...s.miniNote,
                               ...(n.toLowerCase() === selectedFlavor.toLowerCase() ? s.highlightNote : {})
                             }}>
-                              {getFlavorEmoji(n)} {n}
+                              {n}
                             </span>
                           ))}
                         </div>
@@ -300,8 +306,10 @@ function ByNotes({ allRegionDocs = [] }) {
                 })}
               </div>
             ) : (
-              <div style={{ textAlign:'center', padding:'40px', color:'#BCAAA4' }}>
-                <div style={{ fontSize:'32px', marginBottom:'12px' }}>🤔</div>
+              <div style={{ textAlign: 'center', padding: '40px', color: '#BCAAA4' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', opacity: 0.5 }}>
+                  <IcQuestion size={32} />
+                </div>
                 <p>No regions found with "{selectedFlavor}" notes in your brews yet.</p>
               </div>
             )}
@@ -311,7 +319,9 @@ function ByNotes({ allRegionDocs = [] }) {
           <div style={s.emptyState}>
             {brewRecords.length === 0 ? (
               <>
-                <div style={{ fontSize:'48px', marginBottom:'16px' }}>☕</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', opacity: 0.35, color: '#5D4037' }}>
+                  <IcCoffee size={48} />
+                </div>
                 <p style={s.emptyHint}>No brews logged yet. Add your first brew to see flavor notes!</p>
               </>
             ) : (
@@ -341,43 +351,42 @@ function ByNotes({ allRegionDocs = [] }) {
 }
 
 const s = {
-  container:      { padding:'40px 20px', minHeight:'100vh', overflowY:'auto', fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
-  content:        { maxWidth:'900px', margin:'0 auto' },
-  searchContainer:{ position:'relative', marginBottom:'40px' },
-  searchBox:      { display:'flex', alignItems:'center', background:'rgba(255,255,255,0.9)', backdropFilter:'blur(10px)', border:'1px solid rgba(0,0,0,0.07)', borderRadius:'16px', padding:'12px 20px', boxShadow:'0 10px 30px rgba(0,0,0,0.05)' },
-  searchIcon:     { fontSize:'18px', flexShrink:0 },
-  input:          { flex:1, border:'none', background:'transparent', fontSize:'17px', outline:'none', marginLeft:'10px', color:'#2C1810' },
-  clearBtn:       { background:'#EFEBE9', border:'none', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer', fontSize:'11px', color:'#8D6E63', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' },
-  dropdown:       { position:'absolute', top:'calc(100% + 8px)', left:0, right:0, background:'white', borderRadius:'16px', boxShadow:'0 20px 40px rgba(0,0,0,0.1)', zIndex:100, overflow:'hidden', border:'1px solid #EFEBE9' },
-  dropdownItem:   { padding:'12px 20px', display:'flex', justifyContent:'space-between', cursor:'pointer', borderBottom:'1px solid #f5f5f5', fontSize:'14px', color:'#2C1810', background:'white', transition:'background 0.15s' },
-  countBadge:     { background:'#EFEBE9', color:'#8D6E63', padding:'2px 8px', borderRadius:'10px', fontSize:'12px', fontWeight:'700' },
-  section:        { marginBottom:'50px' },
-  sectionTitle:   { fontSize:'12px', textTransform:'uppercase', letterSpacing:'1.2px', color:'#8D6E63', fontWeight:'700', marginBottom:'20px' },
-  tagGrid:        { display:'flex', flexWrap:'wrap', gap:'10px' },
-  tag:            { padding:'10px 18px', borderRadius:'30px', border:'1px solid #EFEBE9', background:'white', cursor:'pointer', fontSize:'14px', fontWeight:'500', color:'#5D4037', boxShadow:'0 2px 5px rgba(0,0,0,0.03)', transition:'all 0.2s' },
-  activeTag:      { background:'#5D4037', color:'white', borderColor:'#5D4037', transform:'translateY(-2px)', boxShadow:'0 5px 15px rgba(93,64,55,0.3)' },
-  resultsArea:    { animation:'fadeIn 0.4s ease' },
-  resultsHeader:  { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' },
-  resultsTitle:   { fontSize:'26px', fontWeight:'800', margin:0, color:'#2C1810' },
-  accentText:     { color:'#8D6E63' },
-  resultsCount:   { fontSize:'13px', color:'#8D6E63', background:'#EFEBE9', padding:'4px 12px', borderRadius:'20px', fontWeight:'600' },
-  cardGrid:       { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'20px', marginTop:'28px' },
-  card:           { background:'white', borderRadius:'20px', padding:'22px', border:'1px solid #F5F5F5', boxShadow:'0 4px 20px rgba(0,0,0,0.04)', transition:'transform 0.2s, box-shadow 0.2s' },
-  cardHeader:     { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'14px' },
-  cardCountry:    { fontSize:'10px', textTransform:'uppercase', letterSpacing:'1px', color:'#A1887F', fontWeight:'700' },
-  cardName:       { fontSize:'17px', fontWeight:'700', color:'#2C1810', margin:'4px 0 2px' },
-  cardLocal:      { fontSize:'12px', color:'#BCAAA4' },
-  typeBadge:      { fontSize:'10px', padding:'3px 8px', background:'#F5F5F5', borderRadius:'6px', color:'#8D6E63', fontWeight:'600', textAlign:'center', textTransform:'capitalize' },
-  cardFooter:     { marginTop:'4px' },
-  inlineNotes:    { display:'flex', flexWrap:'wrap', gap:'6px' },
-  miniNote:       { fontSize:'12px', padding:'4px 10px', background:'#FAFAFA', borderRadius:'8px', color:'#5D4037' },
-  highlightNote:  { background:'#FFF3E0', color:'#E65100', fontWeight:'700' },
-  emptyState:     { textAlign:'center', padding:'60px 0' },
-  statGrid:       { display:'flex', justifyContent:'center', gap:'50px', marginBottom:'30px' },
-  statBox:        { textAlign:'center' },
-  statNum:        { fontSize:'48px', fontWeight:'800', color:'#D4A574', lineHeight:1 },
-  statLab:        { fontSize:'11px', color:'#A1887F', textTransform:'uppercase', marginTop:'8px', letterSpacing:'0.5px' },
-  emptyHint:      { color:'#8D6E63', fontStyle:'italic', fontSize:'14px' },
+  container:       { padding: '40px 20px', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+  content:         { maxWidth: '900px', margin: '0 auto' },
+  searchContainer: { position: 'relative', marginBottom: '40px' },
+  searchBox:       { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '12px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', gap: '10px' },
+  input:           { flex: 1, border: 'none', background: 'transparent', fontSize: '17px', outline: 'none', color: '#2C1810' },
+  clearBtn:        { background: '#EFEBE9', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#8D6E63', flexShrink: 0 },
+  dropdown:        { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, background: 'white', borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.12)', zIndex: 100, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' },
+  dropdownItem:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', cursor: 'pointer', fontSize: '15px', color: '#2C1810', borderBottom: '1px solid #F5F0EC', transition: 'background 0.15s' },
+  countBadge:      { background: '#F5F0EC', borderRadius: '20px', padding: '2px 10px', fontSize: '12px', color: '#8D6E63', fontWeight: '600' },
+  section:         { marginBottom: '32px' },
+  sectionTitle:    { fontSize: '11px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' },
+  tagGrid:         { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+  tag:             { padding: '8px 16px', border: 'none', borderRadius: '20px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer', transition: 'all 0.2s', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
+  activeTag:       { transform: 'scale(1.05)', boxShadow: '0 6px 16px rgba(0,0,0,0.2)' },
+  resultsArea:     { marginTop: '16px' },
+  resultsHeader:   { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' },
+  resultsTitle:    { fontSize: '20px', fontWeight: '700', color: '#2C1810', margin: 0 },
+  accentText:      { color: '#5D4037' },
+  resultsCount:    { fontSize: '13px', color: '#8D6E63', background: '#F5F0EC', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' },
+  cardGrid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '28px' },
+  card:            { background: 'white', borderRadius: '20px', padding: '22px', border: '1px solid #F5F5F5', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', transition: 'transform 0.2s, box-shadow 0.2s' },
+  cardHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' },
+  cardCountry:     { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#A1887F', fontWeight: '700' },
+  cardName:        { fontSize: '17px', fontWeight: '700', color: '#2C1810', margin: '4px 0 2px' },
+  cardLocal:       { fontSize: '12px', color: '#BCAAA4' },
+  typeBadge:       { fontSize: '10px', padding: '3px 8px', background: '#F5F5F5', borderRadius: '6px', color: '#8D6E63', fontWeight: '600', textAlign: 'center', textTransform: 'capitalize' },
+  cardFooter:      { marginTop: '4px' },
+  inlineNotes:     { display: 'flex', flexWrap: 'wrap', gap: '6px' },
+  miniNote:        { fontSize: '12px', padding: '4px 10px', background: '#FAFAFA', borderRadius: '8px', color: '#5D4037' },
+  highlightNote:   { background: '#FFF3E0', color: '#E65100', fontWeight: '700' },
+  emptyState:      { textAlign: 'center', padding: '60px 0' },
+  statGrid:        { display: 'flex', justifyContent: 'center', gap: '50px', marginBottom: '30px' },
+  statBox:         { textAlign: 'center' },
+  statNum:         { fontSize: '48px', fontWeight: '800', color: '#D4A574', lineHeight: 1 },
+  statLab:         { fontSize: '11px', color: '#A1887F', textTransform: 'uppercase', marginTop: '8px', letterSpacing: '0.5px' },
+  emptyHint:       { color: '#8D6E63', fontStyle: 'italic', fontSize: '14px' },
 };
 
 export default ByNotes;

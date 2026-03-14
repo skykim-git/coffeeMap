@@ -1,6 +1,6 @@
 import L from 'leaflet';
-import pinImg      from '../../../public/pin.png';
-import pinHoverImg from '../../../public/pin_hover.png';
+const pinImg      = '/pin.png';
+const pinHoverImg = '/pin_hover.png';
 
 // Inject hover CSS once
 const style = document.createElement('style');
