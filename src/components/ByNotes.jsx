@@ -64,7 +64,7 @@ const FLAVOR_PALETTE = {
   citrus:'linear-gradient(135deg,#FFD700 0%,#FFA500 100%)',
   chocolate:'linear-gradient(135deg,#8B4513 0%,#654321 100%)',
   fruity:'linear-gradient(135deg,#e74c3c 0%,#c0392b 100%)',
-  berry:'linear-gradient(135deg,#6c5ce7 0%,#5f27cd 100%)',
+  berry:'linear-gradient(135deg,#8e44ad 0%,#6c3483 100%)',
   raspberry:'linear-gradient(135deg,#e91e63 0%,#ad1457 100%)',
   banana:'linear-gradient(135deg,#f1c40f 0%,#f39c12 100%)',
   green:'linear-gradient(135deg,#2ecc71 0%,#27ae60 100%)',
@@ -197,12 +197,12 @@ function ByNotes({ allRegionDocs = [] }) {
       <div style={s.content}>
 
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--coffee-medium, #5D4037)', opacity: 0.75, marginBottom: '12px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', color: '#5D4037', opacity: 0.75, marginBottom: '0.75rem' }}>
             <IcNotes size={40} />
           </div>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: '700', color: '#2C1810', margin: '0 0 8px', letterSpacing: '-0.5px' }}>Tasting Notes</h2>
-          <p style={{ fontSize: '1rem', color: '#8D6E63', margin: 0 }}>Explore your flavor discoveries across regions</p>
+          <h2 style={{ fontSize: '2rem', fontWeight: '700', color: '#2C1810', margin: '0 0 0.5rem', letterSpacing: '-0.5px' }}>Tasting Notes</h2>
+          <p style={{ fontSize: '0.95rem', color: '#8D6E63', margin: 0 }}>Explore your flavor discoveries across regions</p>
         </div>
 
         {/* Search */}
@@ -213,7 +213,7 @@ function ByNotes({ allRegionDocs = [] }) {
             </span>
             <input
               style={s.input}
-              placeholder="Search flavors (e.g. Berry, Chocolate…)"
+              placeholder="Search flavors..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -243,15 +243,51 @@ function ByNotes({ allRegionDocs = [] }) {
           )}
         </div>
 
+        {/* Active Filter Pill */}
+        {selectedFlavor && (
+          <div style={s.filterPills}>
+            <div style={s.filterPill}>
+              <span>{selectedFlavor}</span>
+              <span style={s.filterPillClose} onClick={() => setSelectedFlavor(null)}>✕</span>
+            </div>
+          </div>
+        )}
+
         {/* Popular Tags */}
-        {topFlavors.length > 0 && (
+        {topFlavors.length > 0 && !selectedFlavor && (
           <div style={s.section}>
-            <h3 style={s.sectionTitle}>Popular Discoveries</h3>
+            <h3 style={{ ...s.sectionTitle, textAlign: 'center' }}>Popular Discoveries</h3>
             <div style={s.tagGrid}>
               {topFlavors.map((item, i) => (
                 <button key={i} onClick={() => setSelectedFlavor(item.word)}
-                  style={{ ...s.tag, ...(selectedFlavor === item.word ? s.activeTag : {}), background: getFlavorStyle(item.word) }}>
-                  {item.word}
+                  style={{ ...s.tag, position: 'relative', overflow: 'hidden' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.background = '#F5F0EC';
+                    const line = e.currentTarget.querySelector('[data-color-line]');
+                    if (line) line.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0)';
+                    e.currentTarget.style.background = '#FEFCFA';
+                    const line = e.currentTarget.querySelector('[data-color-line]');
+                    if (line) line.style.opacity = '0.6';
+                  }}
+                >
+                  <span style={{ fontWeight: '700', color: '#2C1810' }}>{item.word}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#8D6E63', marginLeft: '0.5rem' }}>({item.count})</span>
+                  <div data-color-line style={{ 
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '3px',
+                    background: getFlavorStyle(item.word),
+                    opacity: 0.6,
+                    transition: 'opacity 0.3s ease'
+                  }} />
                 </button>
               ))}
             </div>
@@ -265,7 +301,7 @@ function ByNotes({ allRegionDocs = [] }) {
               <h2 style={s.resultsTitle}>
                 Regions with <span style={s.accentText}>{selectedFlavor}</span>
               </h2>
-              <span style={s.resultsCount}>{matchingDocs.length} match{matchingDocs.length !== 1 ? 'es' : ''} found</span>
+              <span style={s.resultsCount}>{matchingDocs.length} match{matchingDocs.length !== 1 ? 'es' : ''}</span>
             </div>
 
             {matchingDocs.length > 0 ? (
@@ -324,25 +360,7 @@ function ByNotes({ allRegionDocs = [] }) {
                 </div>
                 <p style={s.emptyHint}>No brews logged yet. Add your first brew to see flavor notes!</p>
               </>
-            ) : (
-              <>
-                <div style={s.statGrid}>
-                  <div style={s.statBox}>
-                    <div style={s.statNum}>{allFlavorWords.length}</div>
-                    <div style={s.statLab}>Flavors Found</div>
-                  </div>
-                  <div style={s.statBox}>
-                    <div style={s.statNum}>{brewRecords.length}</div>
-                    <div style={s.statLab}>Total Brews</div>
-                  </div>
-                  <div style={s.statBox}>
-                    <div style={s.statNum}>{brewedRegionDocs.length}</div>
-                    <div style={s.statLab}>Regions</div>
-                  </div>
-                </div>
-                <p style={s.emptyHint}>Select a flavor above to explore your brews.</p>
-              </>
-            )}
+            ) : null}
           </div>
         )}
       </div>
@@ -353,40 +371,142 @@ function ByNotes({ allRegionDocs = [] }) {
 const s = {
   container:       { padding: '40px 20px', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   content:         { maxWidth: '900px', margin: '0 auto' },
-  searchContainer: { position: 'relative', marginBottom: '40px' },
-  searchBox:       { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '12px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', gap: '10px' },
-  input:           { flex: 1, border: 'none', background: 'transparent', fontSize: '17px', outline: 'none', color: '#2C1810' },
-  clearBtn:        { background: '#EFEBE9', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#8D6E63', flexShrink: 0 },
-  dropdown:        { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, background: 'white', borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.12)', zIndex: 100, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' },
-  dropdownItem:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', cursor: 'pointer', fontSize: '15px', color: '#2C1810', borderBottom: '1px solid #F5F0EC', transition: 'background 0.15s' },
-  countBadge:      { background: '#F5F0EC', borderRadius: '20px', padding: '2px 10px', fontSize: '12px', color: '#8D6E63', fontWeight: '600' },
-  section:         { marginBottom: '32px' },
-  sectionTitle:    { fontSize: '11px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' },
-  tagGrid:         { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-  tag:             { padding: '8px 16px', border: 'none', borderRadius: '20px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer', transition: 'all 0.2s', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-  activeTag:       { transform: 'scale(1.05)', boxShadow: '0 6px 16px rgba(0,0,0,0.2)' },
-  resultsArea:     { marginTop: '16px' },
-  resultsHeader:   { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' },
-  resultsTitle:    { fontSize: '20px', fontWeight: '700', color: '#2C1810', margin: 0 },
+  searchContainer: { position: 'relative', marginBottom: '2rem' },
+  searchBox:       { 
+    display: 'flex', 
+    alignItems: 'center', 
+    background: 'white', 
+    border: '2px solid rgba(93, 64, 55, 0.1)', 
+    borderRadius: '14px', 
+    padding: '0.75rem 1.5rem', 
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', 
+    gap: '10px',
+    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+  },
+  input:           { 
+    flex: 1, 
+    border: 'none', 
+    background: 'transparent', 
+    fontSize: '1rem', 
+    outline: 'none', 
+    color: '#2C1810',
+    '::placeholder': { color: '#8D6E63', opacity: 0.6 }
+  },
+  clearBtn:        { 
+    background: '#EFEBE9', 
+    border: 'none', 
+    borderRadius: '50%', 
+    width: '24px', 
+    height: '24px', 
+    cursor: 'pointer', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    fontSize: '12px', 
+    color: '#8D6E63', 
+    flexShrink: 0,
+    transition: 'all 0.2s ease'
+  },
+  dropdown:        { 
+    position: 'absolute', 
+    top: 'calc(100% + 8px)', 
+    left: 0, 
+    right: 0, 
+    background: 'white', 
+    borderRadius: '12px', 
+    boxShadow: '0 20px 60px rgba(0,0,0,0.12)', 
+    zIndex: 100, 
+    overflow: 'hidden', 
+    border: '1px solid rgba(0,0,0,0.06)' 
+  },
+  dropdownItem:    { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: '12px 20px', 
+    cursor: 'pointer', 
+    fontSize: '15px', 
+    color: '#2C1810', 
+    borderBottom: '1px solid #F5F0EC', 
+    transition: 'background 0.15s' 
+  },
+  countBadge:      { 
+    background: '#F5F0EC', 
+    borderRadius: '20px', 
+    padding: '2px 10px', 
+    fontSize: '12px', 
+    color: '#8D6E63', 
+    fontWeight: '600' 
+  },
+  filterPills:     { display: 'flex', flexWrap: 'wrap', gap: '0.6rem', margin: '1.5rem 0' },
+  filterPill:      { 
+    display: 'inline-flex', 
+    alignItems: 'center', 
+    gap: '0.6rem', 
+    padding: '0.6rem 1.2rem', 
+    background: '#FEFCFA', 
+    border: '2px solid #5D4037', 
+    borderRadius: '8px', 
+    fontSize: '0.9rem', 
+    fontWeight: '700', 
+    color: '#2C1810',
+    transition: 'all 0.2s ease'
+  },
+  filterPillClose: { 
+    width: '16px', 
+    height: '16px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    background: 'rgba(0, 0, 0, 0.1)', 
+    borderRadius: '50%', 
+    cursor: 'pointer', 
+    fontSize: '0.7rem', 
+    fontWeight: '700' 
+  },
+  section:         { marginBottom: '2rem' },
+  sectionTitle:    { fontSize: '0.85rem', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem' },
+  tagGrid:         { display: 'flex', flexWrap: 'wrap', gap: '0.75rem' },
+  tag:             { 
+    padding: '0.6rem 1.2rem', 
+    border: '1px solid #D9CCBF', 
+    borderRadius: '8px', 
+    fontSize: '0.9rem', 
+    fontWeight: '500', 
+    color: '#5D4037', 
+    background: '#FEFCFA',
+    cursor: 'pointer', 
+    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0)'
+  },
+  resultsArea:     { marginTop: '2rem' },
+  resultsHeader:   { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' },
+  resultsTitle:    { fontSize: '1.25rem', fontWeight: '700', color: '#2C1810', margin: 0 },
   accentText:      { color: '#5D4037' },
-  resultsCount:    { fontSize: '13px', color: '#8D6E63', background: '#F5F0EC', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' },
-  cardGrid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '28px' },
-  card:            { background: 'white', borderRadius: '20px', padding: '22px', border: '1px solid #F5F5F5', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', transition: 'transform 0.2s, box-shadow 0.2s' },
-  cardHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' },
-  cardCountry:     { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#A1887F', fontWeight: '700' },
-  cardName:        { fontSize: '17px', fontWeight: '700', color: '#2C1810', margin: '4px 0 2px' },
-  cardLocal:       { fontSize: '12px', color: '#BCAAA4' },
-  typeBadge:       { fontSize: '10px', padding: '3px 8px', background: '#F5F5F5', borderRadius: '6px', color: '#8D6E63', fontWeight: '600', textAlign: 'center', textTransform: 'capitalize' },
-  cardFooter:      { marginTop: '4px' },
-  inlineNotes:     { display: 'flex', flexWrap: 'wrap', gap: '6px' },
-  miniNote:        { fontSize: '12px', padding: '4px 10px', background: '#FAFAFA', borderRadius: '8px', color: '#5D4037' },
-  highlightNote:   { background: '#FFF3E0', color: '#E65100', fontWeight: '700' },
-  emptyState:      { textAlign: 'center', padding: '60px 0' },
-  statGrid:        { display: 'flex', justifyContent: 'center', gap: '50px', marginBottom: '30px' },
-  statBox:         { textAlign: 'center' },
-  statNum:         { fontSize: '48px', fontWeight: '800', color: '#D4A574', lineHeight: 1 },
-  statLab:         { fontSize: '11px', color: '#A1887F', textTransform: 'uppercase', marginTop: '8px', letterSpacing: '0.5px' },
-  emptyHint:       { color: '#8D6E63', fontStyle: 'italic', fontSize: '14px' },
+  resultsCount:    { fontSize: '0.9rem', color: '#8D6E63', background: 'rgba(212, 165, 116, 0.15)', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: '600', border: '1px solid rgba(212, 165, 116, 0.3)' },
+  cardGrid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' },
+  card:            { 
+    background: 'white', 
+    borderRadius: '16px', 
+    padding: '1.5rem', 
+    border: '1px solid rgba(93, 64, 55, 0.08)', 
+    boxShadow: '0 2px 12px rgba(0,0,0,0.06)', 
+    transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  cardHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' },
+  cardCountry:     { fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#A1887F', fontWeight: '700', background: 'rgba(212, 165, 116, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '6px' },
+  cardName:        { fontSize: '1.1rem', fontWeight: '700', color: '#2C1810', margin: '0.25rem 0 0.125rem' },
+  cardLocal:       { fontSize: '0.85rem', color: '#BCAAA4' },
+  typeBadge:       { fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#F5F5F5', borderRadius: '6px', color: '#8D6E63', fontWeight: '600', textAlign: 'center', textTransform: 'capitalize' },
+  cardFooter:      { marginTop: '0.25rem' },
+  inlineNotes:     { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
+  miniNote:        { fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: 'rgba(212, 165, 116, 0.15)', borderRadius: '8px', color: '#5D4037', fontWeight: '600', border: '1px solid rgba(212, 165, 116, 0.3)' },
+  highlightNote:   { background: '#FFF3E0', color: '#E65100', fontWeight: '700', border: '1px solid #FFCC80' },
+  emptyState:      { textAlign: 'center', padding: '3rem 2rem', animation: 'fadeIn 0.6s ease' },
+  emptyHint:       { color: '#8D6E63', fontStyle: 'italic', fontSize: '1rem', margin: 0 },
 };
 
 export default ByNotes;
