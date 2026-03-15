@@ -142,8 +142,8 @@ export default function AddBrewModal({ onClose, onSubmitted, allRegionDocs, onRe
       }, {});
       submissionData.regionRef  = regionRef;
       submissionData.regionPath = buildDisplayPath() || null;
-      await addDoc(brewRef, { ...submissionData, createdAt: serverTimestamp() });
-      onSubmitted(submissionData);
+      const docRef = await addDoc(brewRef, { ...submissionData, createdAt: serverTimestamp() });
+      onSubmitted({ id: docRef.id, ...submissionData });
       onClose();
     } catch (err) {
       setError('Failed to save. Please try again.');

@@ -308,6 +308,7 @@ const handleSetActiveTab = (tab) => {
               onNavigateToRegion={handleNavigateToRegion}
               beanFilter={beanFilter}
               onClearBeanFilter={handleClearBeanFilter}
+              externalBrews={brewRecords}
             />
           </div>
         );
