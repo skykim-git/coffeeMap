@@ -98,36 +98,35 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
   padding: 2px;
   color: #D7CCC8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brew-card-fav-btn.active {
   color: #F59E0B;
 }
 
-.brew-card-edit-btn {
-  background: #E3F2FD;
+.brew-card-icon-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #1565C0;
   cursor: pointer;
+  background: #F0EAE5;
+  color: #8D6E63;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
-.brew-card-delete-btn {
+.brew-card-icon-btn--delete {
   background: #FFEBEE;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
   color: #C62828;
-  cursor: pointer;
 }
 
 .brew-card-body {

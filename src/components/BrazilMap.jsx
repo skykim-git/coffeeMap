@@ -74,26 +74,25 @@ export default function BrazilMap() {
     return () => unsubscribe();
   }, []);
 
-// ── On mobile, auto-zoom to most recent brew's country on initial load ────
-useEffect(() => {
-  if (brewsLoading || brewRecords.length === 0 || allRegionDocs.length === 0) return;
-  if (window.innerWidth > 1024) return;
+  // ── On mobile, auto-zoom to most recent brew's country on initial load ────
+  useEffect(() => {
+    if (brewsLoading || brewRecords.length === 0 || allRegionDocs.length === 0) return;
+    if (window.innerWidth > 1024) return;
 
-  const mostRecent = [...brewRecords].sort((a, b) =>
-    (b.date ?? '').localeCompare(a.date ?? '')
-  )[0];
-  if (!mostRecent?.regionRef) return;
+    const mostRecent = [...brewRecords].sort((a, b) =>
+      (b.date ?? '').localeCompare(a.date ?? '')
+    )[0];
+    if (!mostRecent?.regionRef) return;
 
-  // Walk up to the country level
-  let cur = byId[mostRecent.regionRef];
-  while (cur && cur.level !== 'country') {
-    cur = cur.parentId ? byId[cur.parentId] : null;
-  }
-  if (cur) {
-    setSelectedDoc(cur);
-    setPinnedDoc(null);
-  }
-}, [brewsLoading, brewRecords, allRegionDocs]);
+    let cur = byId[mostRecent.regionRef];
+    while (cur && cur.level !== 'country') {
+      cur = cur.parentId ? byId[cur.parentId] : null;
+    }
+    if (cur) {
+      setSelectedDoc(cur);
+      setPinnedDoc(null);
+    }
+  }, [brewsLoading, brewRecords, allRegionDocs]);
 
   // ── Derived data ───────────────────────────────────────────────────────────
 
@@ -147,23 +146,18 @@ useEffect(() => {
   // ── Visibility logic ───────────────────────────────────────────────────────
 
   const visibleLevels = () => {
-    if (!selectedDoc) {
-      return ['country'];
-    }
+    if (!selectedDoc) return ['country'];
     const level = selectedDoc.level;
     if (level === 'country') return ['region', 'subregion'];
     if (level === 'region')  return ['subregion', 'town'];
     return ['town', 'subregion'];
   };
 
-  
-
   const visibleDocs = mapDocs.filter(d => {
     if (!brewedDocIds.has(d.id)) return false;
     if (pinnedDoc && d.id === pinnedDoc.id) return true;
     if (!visibleLevels().includes(d.level)) return false;
     if (selectedDoc) {
-      // Only show direct children of selectedDoc (one level below)
       return d.parentId === selectedDoc.id;
     }
     return true;
@@ -208,28 +202,29 @@ useEffect(() => {
 
   const handleClearBeanFilter = () => setBeanFilter(null);
 
-const handleSetActiveTab = (tab) => {
-  if (tab !== 'raw-data') setBeanFilter(null);
-  setActiveTab(tab);
+  const handleSetActiveTab = (tab) => {
+    if (tab !== 'raw-data') setBeanFilter(null);
+    setActiveTab(tab);
 
-  if (tab === 'coffee-map' && window.innerWidth <= 1024 && brewRecords.length > 0) {
-    const mostRecent = [...brewRecords].sort((a, b) =>
-      (b.date ?? '').localeCompare(a.date ?? '')
-    )[0];
-    if (!mostRecent?.regionRef) return;
+    if (tab === 'coffee-map' && window.innerWidth <= 1024 && brewRecords.length > 0) {
+      const mostRecent = [...brewRecords].sort((a, b) =>
+        (b.date ?? '').localeCompare(a.date ?? '')
+      )[0];
+      if (!mostRecent?.regionRef) return;
 
-    let cur = byId[mostRecent.regionRef];
-    while (cur && cur.level !== 'country') {
-      cur = cur.parentId ? byId[cur.parentId] : null;
+      let cur = byId[mostRecent.regionRef];
+      while (cur && cur.level !== 'country') {
+        cur = cur.parentId ? byId[cur.parentId] : null;
+      }
+      if (cur) {
+        setTimeout(() => {
+          setSelectedDoc(cur);
+          setPinnedDoc(null);
+        }, 150);
+      }
     }
-    if (cur) {
-      setTimeout(() => {
-        setSelectedDoc(cur);
-        setPinnedDoc(null);
-      }, 150);
-    }
-  }
-};
+  };
+
   // ── Tab content ────────────────────────────────────────────────────────────
 
   const renderTabContent = () => {
@@ -320,6 +315,21 @@ const handleSetActiveTab = (tab) => {
           </div>
         );
 
+      case 'user-profile':
+        return (
+          <div className="map-wrapper" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexDirection: 'column', gap: '12px',
+            color: '#A1887F', fontSize: '15px', fontWeight: 500,
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D7CCC8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width={48} height={48}>
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+            Profile page coming soon.
+          </div>
+        );
+
       default:
         return null;
     }
@@ -361,7 +371,7 @@ const handleSetActiveTab = (tab) => {
           activeTab={activeTab}
           onBack={handleBackToMap}
           onAddBrew={() => setShowBrewModal(true)}
-          setActiveTab={handleSetActiveTab}
+          onUserClick={() => handleSetActiveTab('user-profile')}
         />
 
         {renderTabContent()}

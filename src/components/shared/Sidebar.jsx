@@ -1,5 +1,4 @@
 import React from 'react';
-import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/config';
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -63,19 +62,10 @@ const IconBack = ({ size = 18, color = 'currentColor' }) => (
   </svg>
 );
 
-const IconMenu = ({ size = 16, color = 'currentColor' }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" width={size} height={size}>
-    <line x1="3" y1="6" x2="21" y2="6"/>
-    <line x1="6" y1="12" x2="18" y2="12"/>
-    <line x1="9" y1="18" x2="15" y2="18"/>
-  </svg>
-);
-
-const IconSignOut = ({ size = 16, color = 'currentColor' }) => (
+const IconUser = ({ size = 16, color = 'currentColor' }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-    <polyline points="16,17 21,12 16,7"/>
-    <line x1="21" y1="12" x2="9" y2="12"/>
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
   </svg>
 );
 
@@ -210,7 +200,7 @@ export function Sidebar({ open, onClose, totalBrews, brewedRegions, brewedCountr
 
 // ─── TopBar ───────────────────────────────────────────────────────────────────
 
-export function TopBar({ selectedDoc, byId, activeTab, onBack, onAddBrew, onToggleSidebar }) {
+export function TopBar({ selectedDoc, byId, activeTab, onBack, onAddBrew, onUserClick }) {
   return (
     <div className="top-bar">
       <div className="breadcrumb">
@@ -246,13 +236,9 @@ export function TopBar({ selectedDoc, byId, activeTab, onBack, onAddBrew, onTogg
           <span style={{ fontSize: '16px', lineHeight: 1 }}>+</span>
           <span className="btn-label">Add Brew</span>
         </button>
-        <button className="btn btn-secondary btn-icon" onClick={onToggleSidebar} title="Menu">
-          <IconMenu size={16} />
-          <span className="btn-label">Menu</span>
-        </button>
-        <button className="btn btn-secondary btn-icon" onClick={() => signOut(auth)} title="Sign out">
-          <IconSignOut size={16} />
-          <span className="btn-label">Sign Out</span>
+        <button className="btn btn-secondary btn-icon" onClick={onUserClick} title="Profile">
+          <IconUser size={16} />
+          <span className="btn-label">Profile</span>
         </button>
       </div>
     </div>
@@ -261,7 +247,7 @@ export function TopBar({ selectedDoc, byId, activeTab, onBack, onAddBrew, onTogg
 
 // ─── BottomTabBar (mobile) ────────────────────────────────────────────────────
 
-export function BottomTabBar({ activeTab, setActiveTab, onAddBrew }) {
+export function BottomTabBar({ activeTab, setActiveTab }) {
   const tabs = [
     { key: 'coffee-map',  label: 'Map',   icon: <IconMap size={20} /> },
     { key: 'by-notes',    label: 'Notes', icon: <IconNotes size={20} /> },

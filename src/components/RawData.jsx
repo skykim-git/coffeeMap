@@ -46,21 +46,7 @@ const getFlavorStyle = (tag) => {
   return `linear-gradient(135deg, ${pair[0]} 0%, ${pair[1]} 100%)`;
 };
 
-const getFlavorEmoji = (tag) => {
-  if (!tag) return '';
-  if (tag.includes('fruit')) return '🍓';
-  if (tag.includes('citrus')) return '🍋';
-  if (tag.includes('choc')) return '🍫';
-  if (tag.includes('nut')) return '🌰';
-  if (tag.includes('floral')) return '🌸';
-  if (tag.includes('spice') || tag.includes('spicy')) return '🌶️';
-  if (tag.includes('caramel')) return '🍮';
-  if (tag.includes('earth')) return '🪨';
-  if (tag.includes('berry')) return '🫐';
-  if (tag.includes('tropical')) return '🥭';
-  if (tag.includes('sweet')) return '🍬';
-  return '✨';
-};
+const getFlavorEmoji = () => '';
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 
@@ -98,6 +84,28 @@ const BEAN_FIELDS = [
 
 // ─── Mobile Brew Card ─────────────────────────────────────────────────────────
 
+const IconEdit = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+    <polyline points="3,6 5,6 21,6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6"/><path d="M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </svg>
+);
+
+const IconStar = ({ filled }) => (
+  <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+  </svg>
+);
+
 const BrewCard = ({ brew, regionById, onFavorite, onEdit, onDelete, onBeanClick }) => {
   const hasRegion = !!brew.regionRef && !!regionById[brew.regionRef];
   const roastPalette   = ROAST_COLORS[brew.roastLevel]   || null;
@@ -118,14 +126,17 @@ const BrewCard = ({ brew, regionById, onFavorite, onEdit, onDelete, onBeanClick 
           </div>
         </div>
         <div className="brew-card-actions">
-          <button className={`brew-card-fav-btn${brew.favorite ? ' active' : ''}`} onClick={() => onFavorite(brew)}>
-            {brew.favorite ? '★' : '☆'}
+          <button className={`brew-card-fav-btn${brew.favorite ? ' active' : ''}`} onClick={() => onFavorite(brew)} title={brew.favorite ? 'Unfavourite' : 'Favourite'}>
+            <IconStar filled={brew.favorite} />
           </button>
-          <button className="brew-card-edit-btn"   onClick={() => onEdit(brew)}>Edit</button>
-          <button className="brew-card-delete-btn" onClick={() => onDelete(brew)}>Del</button>
+          <button className="brew-card-icon-btn" onClick={() => onEdit(brew)} title="Edit">
+            <IconEdit />
+          </button>
+          <button className="brew-card-icon-btn brew-card-icon-btn--delete" onClick={() => onDelete(brew)} title="Delete">
+            <IconTrash />
+          </button>
         </div>
       </div>
-
       <div className="brew-card-body">
         <div className="brew-card-date">{formatDate(brew.date)}</div>
 
@@ -197,8 +208,14 @@ const FlavorTagsCell = ({ tags }) => {
 };
 
 const SortIcon = ({ active, direction }) => (
-  <span style={{ marginLeft: '4px', opacity: active ? 1 : 0.3, fontSize: '10px' }}>
-    {active ? (direction === 'asc' ? '▲' : '▼') : '⬍'}
+  <span style={{ marginLeft: '4px', opacity: active ? 1 : 0.3, display: 'inline-flex', verticalAlign: 'middle' }}>
+    {active ? (
+      direction === 'asc'
+        ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="10" height="10"><polyline points="18,15 12,9 6,15"/></svg>
+        : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="10" height="10"><polyline points="6,9 12,15 18,9"/></svg>
+    ) : (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" width="10" height="10"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="15,15 18,18 21,15"/><line x1="18" y1="9" x2="18" y2="18"/></svg>
+    )}
   </span>
 );
 
@@ -213,7 +230,7 @@ const StatCard = ({ value, label, icon }) => (
 const BeanFilterBanner = ({ beanName, onClear }) => (
   <div style={s.filterBanner}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '14px' }}>☕</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
       <span style={s.filterBannerText}>Showing brews for <strong>{beanName}</strong></span>
     </div>
     <button onClick={onClear} style={s.filterBannerClear} title="Clear filter">✕ Show all</button>
@@ -462,7 +479,7 @@ const EditModal = ({ brew, onSave, onCancel, saving }) => {
 const DeleteModal = ({ brew, onConfirm, onCancel, deleting }) => (
   <div style={s.backdrop} onClick={e => e.target === e.currentTarget && onCancel()}>
     <div style={s.deleteModal}>
-      <div style={s.deleteModalIcon}>🗑️</div>
+      <div style={s.deleteModalIcon}><svg viewBox="0 0 24 24" fill="none" stroke="#C62828" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="28" height="28"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
       <div style={s.deleteModalTitle}>Delete this brew?</div>
       <div style={s.deleteModalSub}>{brew.beans}{brew.date ? ` · ${formatDate(brew.date)}` : ''}{brew.method ? ` · ${brew.method}` : ''}</div>
       <div style={s.deleteModalNote}>This action cannot be undone.</div>
@@ -649,7 +666,7 @@ useEffect(() => {
       {/* Header */}
       <div style={s.header}>
         <div style={s.headerLeft}>
-          <span style={{ fontSize: '20px' }}>📊</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#F5E6D3" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="20" height="20"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
           <div>
             <div style={s.headerTitle}>Brew Data</div>
             <div style={s.headerSub}>{brews.length} records in your journal</div>
@@ -662,14 +679,14 @@ useEffect(() => {
       {/* Stats row — horizontal scroll on mobile */}
       {stats && (
         <div className="rawdata-stats-row">
-          <StatCard value={stats.total}       label="Total Brews"    icon="☕" />
-          <StatCard value={stats.uniqueBeans} label="Unique Origins" icon="🌍" />
-          <StatCard value={stats.topMethod}   label="Fav. Method"    icon="🏆" />
-          <StatCard value={stats.avgTemp ? `${stats.avgTemp}°C` : '—'} label="Avg. Temp" icon="🌡️" />
+          <StatCard value={stats.total}       label="Total Brews"    icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>} />
+          <StatCard value={stats.uniqueBeans} label="Unique Origins" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>} />
+          <StatCard value={stats.topMethod}   label="Fav. Method"    icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>} />
+          <StatCard value={stats.avgTemp ? `${stats.avgTemp}°C` : '—'} label="Avg. Temp" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>} />
           {stats.topFlavor && (
             <StatCard
-              value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: getFlavorStyle(stats.topFlavor), color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>{getFlavorEmoji(stats.topFlavor)} {stats.topFlavor}</span>}
-              label="Top Flavor" icon="👅"
+              value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: getFlavorStyle(stats.topFlavor), color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>{stats.topFlavor}</span>}
+              label="Top Flavor" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M12 22C6.5 22 2 17.5 2 12 2 9.5 4 6 6 4c0 2 1 4 4 4 0-4 2.5-6 4-6 0 3 2 5 4 5 0-2 2-3 3-3-1 3 0 5 0 7 0 5.5-4.5 11-9 11z"/></svg>}
             />
           )}
         </div>
@@ -680,7 +697,7 @@ useEffect(() => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {/* Search */}
           <div style={{ ...s.searchWrap, flex: '1 1 200px' }}>
-            <span style={s.searchIcon}>🔍</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8D6E63" strokeWidth="1.75" strokeLinecap="round" width="14" height="14" style={{ position: 'absolute', left: '10px', top: '9px' }}><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input style={s.searchInput} placeholder="Search beans, variety, process…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
 
@@ -689,7 +706,7 @@ useEffect(() => {
             style={{ ...s.filterPill, display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', ...(showFavOnly ? { background: '#F59E0B', color: 'white', border: '1px solid #F59E0B' } : {}) }}
             onClick={() => setShowFavOnly(v => !v)}
           >
-            <span style={{ fontSize: '13px' }}>{showFavOnly ? '★' : '☆'}</span> Favourites
+            <svg viewBox="0 0 24 24" fill={showFavOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg> Favourites
           </button>
 
           {/* Column visibility — hidden on mobile via CSS */}
@@ -750,9 +767,9 @@ useEffect(() => {
                         case 'favorite':
                           return (
                             <td key="favorite" style={{ ...s.td, ...s.tdFav }}>
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none' }} title={brew.favorite ? 'Unfavourite' : 'Favourite'} onClick={() => handleToggleFavorite(brew)}>
-                                {brew.favorite ? '★' : '☆'}
-                              </button>
+                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none', display: 'flex' }} title={brew.favorite ? 'Unfavourite' : 'Favourite'} onClick={() => handleToggleFavorite(brew)}>
+                                <svg viewBox="0 0 24 24" fill={brew.favorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                                </button>
                             </td>
                           );
                         case 'date':
