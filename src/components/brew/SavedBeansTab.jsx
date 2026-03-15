@@ -3,65 +3,36 @@ import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firesto
 import { db, auth } from '../../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 
-// ─── SVG Icons ────────────────────────────────────────────────────────────────
+// ── Inline SVG icons ──────────────────────────────────────────────────────────
 
-const IconCup = ({ color = '#F5E6D3', size = 20 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
-    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/>
-    <line x1="6" y1="2" x2="6" y2="4"/>
-    <line x1="10" y1="2" x2="10" y2="4"/>
-    <line x1="14" y1="2" x2="14" y2="4"/>
+const EditIcon = ({ size = 15 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+    strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
 
-const IconSearch = ({ color = '#8D6E63', size = 16 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" width={size} height={size}>
-    <circle cx="11" cy="11" r="7"/>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+const TrashIcon = ({ size = 15 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+    strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <polyline points="3,6 5,6 21,6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
   </svg>
 );
 
-const IconEdit = ({ color = '#8D6E63', size = 14 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+const SearchIcon = ({ size = 15 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+    strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <circle cx="11" cy="11" r="7" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
-const IconTrash = ({ color = '#BCAAA4', size = 14 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <polyline points="3,6 5,6 21,6"/>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-    <path d="M10 11v6"/><path d="M14 11v6"/>
-    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-  </svg>
-);
-
-const IconPin = ({ color = '#7C55C4', size = 12 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
-    <circle cx="12" cy="10" r="3"/>
-  </svg>
-);
-
-const IconGrinder = ({ color = '#A1887F', size = 12 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M9 3h6l3 7H6L9 3z"/>
-    <path d="M6 10l-2 8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1l-2-8"/>
-    <path d="M12 10v9"/>
-  </svg>
-);
-
-const IconWarning = ({ color = '#C62828', size = 14 }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-    <line x1="12" y1="9" x2="12" y2="13"/>
-    <line x1="12" y1="17" x2="12.01" y2="17"/>
-  </svg>
-);
-
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const EDIT_FIELDS = [
   ['label',        'Preset Name'],
@@ -74,7 +45,7 @@ const EDIT_FIELDS = [
   ['grindSetting', 'Grind Setting'],
 ];
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 const st = {
   root: {
@@ -88,12 +59,14 @@ const st = {
   },
   pageHeaderTitle: { fontSize: '16px', fontWeight: 700, color: '#F5E6D3' },
   pageHeaderSub:   { fontSize: '11px', color: 'rgba(245,230,211,0.5)' },
+
   body: { padding: '24px', overflowY: 'auto', flex: 1 },
+
   searchWrap: { position: 'relative', marginBottom: '10px' },
   searchIconWrap: {
     position: 'absolute', left: '12px', top: '50%',
     transform: 'translateY(-50%)', pointerEvents: 'none',
-    display: 'flex', alignItems: 'center',
+    color: '#A1887F', display: 'flex', alignItems: 'center',
   },
   searchInput: {
     width: '100%', padding: '10px 14px 10px 36px',
@@ -106,56 +79,66 @@ const st = {
     fontSize: '13px', color: '#8D6E63', fontWeight: 500,
     marginBottom: '16px', marginTop: '6px',
   },
+
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
     gap: '14px',
   },
+
+  // ── Card ──
   card: {
     background: '#fff', borderRadius: '14px',
-    border: '1.5px solid #EDE0D4', padding: '16px 18px',
-    cursor: 'pointer',
+    border: '1.5px solid #EDE0D4', padding: '0',
+    cursor: 'pointer', overflow: 'hidden',
     transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.15s',
-    display: 'flex', flexDirection: 'column', gap: '6px',
-    position: 'relative', userSelect: 'none',
+    display: 'flex', flexDirection: 'column',
+    userSelect: 'none',
   },
   cardHover: {
     boxShadow: '0 4px 18px rgba(93,64,55,0.13)',
     borderColor: '#A1887F', transform: 'translateY(-2px)',
   },
+
+  cardHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+    padding: '14px 16px 12px',
+    borderBottom: '1px solid #F0EAE5',
+  },
+  cardHeaderLeft: { flex: 1, minWidth: 0, marginRight: '8px' },
   cardLabel: {
-    fontSize: '15px', fontWeight: 700, color: '#3E2723',
-    lineHeight: 1.3, paddingRight: '60px',
+    fontSize: '14px', fontWeight: 700, color: '#3E2723', lineHeight: 1.3,
   },
   cardBeans: {
-    fontSize: '12px', color: '#A1887F', fontWeight: 500,
+    fontSize: '11px', color: '#A1887F', fontWeight: 500, marginTop: '1px',
   },
-  cardOrigin: {
-    display: 'inline-flex', alignItems: 'center', gap: '4px',
-    fontSize: '12px', color: '#7C55C4', fontWeight: 500,
-  },
-  cardMeta: { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' },
-  tag: {
-    fontSize: '11px', fontWeight: 600, padding: '3px 9px',
-    borderRadius: '20px', background: '#EFE9E4', color: '#6D4C41',
-  },
-  cardGrinder: {
-    display: 'inline-flex', alignItems: 'center', gap: '4px',
-    fontSize: '11px', color: '#A1887F', marginTop: '2px',
-  },
-  cardIconBtns: {
-    position: 'absolute', top: '12px', right: '12px',
-    display: 'flex', gap: '4px',
-  },
-  cardIconBtn: (variant) => ({
-    width: '26px', height: '26px',
+
+  iconGroup: { display: 'flex', gap: '2px', flexShrink: 0 },
+  iconBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: '#BCAAA4', padding: '4px', borderRadius: '5px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    border: 'none', borderRadius: '6px', cursor: 'pointer',
-    background: variant === 'danger' ? '#FFEBEE' : '#F0EAE5',
-    color:      variant === 'danger' ? '#C62828' : '#8D6E63',
-    transition: 'background 0.15s, color 0.15s',
-    flexShrink: 0,
-  }),
+    transition: 'color 0.15s, background 0.15s',
+  },
+  iconBtnDanger: {
+    color: '#C62828', background: '#FFEBEE',
+  },
+
+  // ── Info grid ──
+  infoGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr',
+    padding: '10px 16px 14px', gap: '8px 12px',
+  },
+  infoCell: {},
+  infoKey: {
+    fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: '#BCAAA4', marginBottom: '1px',
+  },
+  infoVal: {
+    fontSize: '12px', color: '#6D4C41',
+  },
+
+  // ── Empty / loading ──
   empty: {
     textAlign: 'center', color: '#BCAAA4',
     fontSize: '15px', marginTop: '60px', lineHeight: 1.8,
@@ -182,7 +165,6 @@ const st = {
     background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
     flexShrink: 0,
   },
-  modalHeaderLeft: { display: 'flex', alignItems: 'center', gap: '8px' },
   modalTitle: { fontSize: '14px', fontWeight: 700, color: '#F5E6D3' },
   modalCloseBtn: {
     background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
@@ -220,17 +202,18 @@ const st = {
   },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function SavedBeansTab({ onSelectBean }) {
-  const [beans, setBeans]                   = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [search, setSearch]                 = useState('');
-  const [hoveredId, setHoveredId]           = useState(null);
-  const [searchFocused, setSearchFocused]   = useState(false);
-  const [editingBean, setEditingBean]       = useState(null);
-  const [editForm, setEditForm]             = useState({});
-  const [editSaving, setEditSaving]         = useState(false);
+  const [beans, setBeans]               = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState('');
+  const [hoveredId, setHoveredId]       = useState(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  const [editingBean, setEditingBean]   = useState(null);
+  const [editForm, setEditForm]         = useState({});
+  const [editSaving, setEditSaving]     = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
@@ -310,9 +293,8 @@ export default function SavedBeansTab({ onSelectBean }) {
 
   return (
     <div style={st.root}>
-      {/* Header */}
+      {/* ── Page header ── */}
       <div style={st.pageHeader}>
-        <IconCup color="#F5E6D3" size={20} />
         <div>
           <div style={st.pageHeaderTitle}>Saved Beans</div>
           <div style={st.pageHeaderSub}>
@@ -321,6 +303,7 @@ export default function SavedBeansTab({ onSelectBean }) {
         </div>
       </div>
 
+      {/* ── Body ── */}
       <div style={st.body}>
         {loading ? (
           <div style={st.loading}>Loading saved beans…</div>
@@ -329,7 +312,7 @@ export default function SavedBeansTab({ onSelectBean }) {
             {/* Search */}
             <div style={st.searchWrap}>
               <span style={st.searchIconWrap}>
-                <IconSearch color="#8D6E63" size={16} />
+                <SearchIcon size={15} />
               </span>
               <input
                 style={{
@@ -348,6 +331,7 @@ export default function SavedBeansTab({ onSelectBean }) {
               {filtered.length} result{filtered.length !== 1 ? 's' : ''}
             </div>
 
+            {/* Cards */}
             {filtered.length === 0 ? (
               <div style={st.empty}>
                 {beans.length === 0
@@ -358,10 +342,8 @@ export default function SavedBeansTab({ onSelectBean }) {
             ) : (
               <div style={st.grid}>
                 {filtered.map(bean => {
-                  const isHovered   = hoveredId === bean.id;
-                  const isConfirm   = confirmDeleteId === bean.id;
-                  const metaItems   = [bean.variety, bean.processing, bean.roastLevel].filter(Boolean);
-                  const grinderLine = [bean.grinder, bean.grindSetting].filter(Boolean).join(' @ ');
+                  const isHovered = hoveredId === bean.id;
+                  const isConfirm = confirmDeleteId === bean.id;
 
                   return (
                     <div
@@ -371,54 +353,59 @@ export default function SavedBeansTab({ onSelectBean }) {
                       onMouseEnter={() => setHoveredId(bean.id)}
                       onMouseLeave={() => { setHoveredId(null); setConfirmDeleteId(null); }}
                     >
-                      {/* Top-right icon buttons */}
-                      <div style={st.cardIconBtns} onClick={e => e.stopPropagation()}>
-                        <button
-                          style={st.cardIconBtn('default')}
-                          onClick={(e) => openEdit(e, bean)}
-                          title="Edit preset"
-                        >
-                          <IconEdit color="#8D6E63" size={13} />
-                        </button>
-                        <button
-                          style={st.cardIconBtn(isConfirm ? 'danger' : 'default')}
-                          onClick={(e) => handleDelete(e, bean.id)}
-                          title={isConfirm ? 'Confirm delete' : 'Delete preset'}
-                        >
-                          {isConfirm
-                            ? <IconWarning color="#C62828" size={13} />
-                            : <IconTrash color="#8D6E63" size={13} />
-                          }
-                        </button>
+                      {/* Header row */}
+                      <div style={st.cardHeader}>
+                        <div style={st.cardHeaderLeft}>
+                          <div style={st.cardLabel}>{bean.label}</div>
+                          {bean.beans && bean.beans !== bean.label && (
+                            <div style={st.cardBeans}>{bean.beans}</div>
+                          )}
+                        </div>
+                        <div style={st.iconGroup} onClick={e => e.stopPropagation()}>
+                          <button
+                            style={st.iconBtn}
+                            onClick={(e) => openEdit(e, bean)}
+                            title="Edit preset"
+                          >
+                            <EditIcon size={15} />
+                          </button>
+                          <button
+                            style={{ ...st.iconBtn, ...(isConfirm ? st.iconBtnDanger : {}) }}
+                            onClick={(e) => handleDelete(e, bean.id)}
+                            title={isConfirm ? 'Click again to confirm' : 'Delete preset'}
+                          >
+                            <TrashIcon size={15} />
+                          </button>
+                        </div>
                       </div>
 
-                      <div style={st.cardLabel}>{bean.label}</div>
-
-                      {bean.beans && bean.beans !== bean.label && (
-                        <div style={st.cardBeans}>{bean.beans}</div>
-                      )}
-
-                      {bean.regionPath && (
-                        <div style={st.cardOrigin}>
-                          <IconPin color="#7C55C4" size={12} />
-                          {bean.regionPath}
-                        </div>
-                      )}
-
-                      {metaItems.length > 0 && (
-                        <div style={st.cardMeta}>
-                          {metaItems.map(m => (
-                            <span key={m} style={st.tag}>{m}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      {grinderLine && (
-                        <div style={st.cardGrinder}>
-                          <IconGrinder color="#A1887F" size={12} />
-                          {grinderLine}
-                        </div>
-                      )}
+                      {/* Info grid */}
+                      <div style={st.infoGrid}>
+                        {bean.regionPath && (
+                          <div style={st.infoCell}>
+                            <div style={st.infoKey}>Origin</div>
+                            <div style={{ ...st.infoVal, color: '#185FA5' }}>{bean.regionPath}</div>
+                          </div>
+                        )}
+                        {bean.processing && (
+                          <div style={st.infoCell}>
+                            <div style={st.infoKey}>Process</div>
+                            <div style={st.infoVal}>{bean.processing}</div>
+                          </div>
+                        )}
+                        {bean.variety && (
+                          <div style={st.infoCell}>
+                            <div style={st.infoKey}>Variety</div>
+                            <div style={st.infoVal}>{bean.variety}</div>
+                          </div>
+                        )}
+                        {bean.roastLevel && (
+                          <div style={st.infoCell}>
+                            <div style={st.infoKey}>Roast</div>
+                            <div style={st.infoVal}>{bean.roastLevel}</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -428,15 +415,12 @@ export default function SavedBeansTab({ onSelectBean }) {
         )}
       </div>
 
-      {/* Edit Modal */}
+      {/* ── Edit Modal ── */}
       {editingBean && (
         <div style={st.modalBackdrop} onClick={e => e.target === e.currentTarget && setEditingBean(null)}>
           <div style={st.modalBox}>
             <div style={st.modalHeader}>
-              <div style={st.modalHeaderLeft}>
-                <IconEdit color="#F5E6D3" size={15} />
-                <span style={st.modalTitle}>Edit Bean Preset</span>
-              </div>
+              <span style={st.modalTitle}>Edit Bean Preset</span>
               <button style={st.modalCloseBtn} onClick={() => setEditingBean(null)}>✕</button>
             </div>
             <div style={st.modalBody}>

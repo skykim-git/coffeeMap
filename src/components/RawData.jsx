@@ -82,7 +82,7 @@ const BEAN_FIELDS = [
   'brewTime','flavorTags','notes','brewingRecipe','extra','date','regionRef','favorite',
 ];
 
-// ─── Mobile Brew Card ─────────────────────────────────────────────────────────
+// ─── Mobile Brew Card — Variant B ────────────────────────────────────────────
 
 const IconEdit = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
@@ -107,26 +107,45 @@ const IconStar = ({ filled }) => (
 );
 
 const BrewCard = ({ brew, regionById, onFavorite, onEdit, onDelete, onBeanClick }) => {
-  const hasRegion = !!brew.regionRef && !!regionById[brew.regionRef];
-  const roastPalette   = ROAST_COLORS[brew.roastLevel]   || null;
-  const processPalette = PROCESS_COLORS[brew.processing]  || null;
+  const hasRegion    = !!brew.regionRef && !!regionById[brew.regionRef];
+  const roastPalette = ROAST_COLORS[brew.roastLevel] || null;
+
+  const ratio = brew.groundCoffeeWeight && brew.waterIn
+    ? (parseFloat(brew.waterIn) / parseFloat(brew.groundCoffeeWeight)).toFixed(1)
+    : null;
+
+  const ratioBarWidth = brew.groundCoffeeWeight && brew.waterIn
+    ? Math.min(100, (parseFloat(brew.groundCoffeeWeight) / parseFloat(brew.waterIn)) * 100 * 16)
+    : 0;
 
   return (
     <div className="brew-card">
+
+      {/* ── Header ── */}
       <div className="brew-card-header">
-        <div className="brew-card-title">
+        <div className="brew-card-meta">
           <button className="brew-card-bean" onClick={() => onBeanClick(brew)}>
             {fmt(brew.beans)}{hasRegion ? ' ↗' : ''}
           </button>
-          <div className="brew-card-badges" style={{ marginTop: '6px' }}>
-            {brew.method && <span className="brew-card-badge">{brew.method}</span>}
-            {brew.roastLevel && roastPalette && (
-              <span className="brew-card-badge" style={{ background: roastPalette.bg, color: roastPalette.color }}>{brew.roastLevel}</span>
+          <div className="brew-card-sub">
+            {brew.method && <span>{brew.method}</span>}
+            {brew.method && brew.roastLevel && <span className="brew-card-dot">·</span>}
+            {brew.roastLevel && (
+              <span style={roastPalette ? { color: roastPalette.color } : {}}>
+                {brew.roastLevel}
+              </span>
             )}
+            {(brew.method || brew.roastLevel) && brew.date && <span className="brew-card-dot">·</span>}
+            {brew.date && <span>{formatDate(brew.date)}</span>}
           </div>
         </div>
+
         <div className="brew-card-actions">
-          <button className={`brew-card-fav-btn${brew.favorite ? ' active' : ''}`} onClick={() => onFavorite(brew)} title={brew.favorite ? 'Unfavourite' : 'Favourite'}>
+          <button
+            className={`brew-card-fav-btn${brew.favorite ? ' active' : ''}`}
+            onClick={() => onFavorite(brew)}
+            title={brew.favorite ? 'Unfavourite' : 'Favourite'}
+          >
             <IconStar filled={brew.favorite} />
           </button>
           <button className="brew-card-icon-btn" onClick={() => onEdit(brew)} title="Edit">
@@ -137,44 +156,72 @@ const BrewCard = ({ brew, regionById, onFavorite, onEdit, onDelete, onBeanClick 
           </button>
         </div>
       </div>
+
+      {/* ── Two-column body ── */}
       <div className="brew-card-body">
-        <div className="brew-card-date">{formatDate(brew.date)}</div>
 
-        {/* Key brew metrics */}
-        {(brew.groundCoffeeWeight || brew.waterIn || brew.waterTemp || brew.brewTime || brew.grindSetting) && (
-          <div className="brew-card-meta-row">
-            {brew.groundCoffeeWeight && <span className="brew-card-stat-chip">{brew.groundCoffeeWeight}g coffee</span>}
-            {brew.waterIn            && <span className="brew-card-stat-chip">{brew.waterIn}g water</span>}
-            {brew.waterTemp          && <span className="brew-card-stat-chip">{brew.waterTemp}°C</span>}
-            {brew.brewTime           && <span className="brew-card-stat-chip">{brew.brewTime}</span>}
-            {brew.grindSetting       && <span className="brew-card-stat-chip">grind {brew.grindSetting}</span>}
+        {/* Left: brew parameters */}
+        <div className="brew-card-left">
+          <span className="brew-card-section-label">Brew parameters</span>
+          <div className="brew-card-params-grid">
+            <div className="brew-card-param">
+              <span className="brew-param-key">Coffee</span>
+              <span className="brew-param-val">{brew.groundCoffeeWeight ? `${brew.groundCoffeeWeight}g` : '—'}</span>
+            </div>
+            <div className="brew-card-param">
+              <span className="brew-param-key">Water</span>
+              <span className="brew-param-val">{brew.waterIn ? `${brew.waterIn}g` : '—'}</span>
+            </div>
+            <div className="brew-card-param">
+              <span className="brew-param-key">Temp</span>
+              <span className="brew-param-val">{brew.waterTemp ? `${brew.waterTemp}°C` : '—'}</span>
+            </div>
+            <div className="brew-card-param">
+              <span className="brew-param-key">Time</span>
+              <span className="brew-param-val">{brew.brewTime || '—'}</span>
+            </div>
           </div>
-        )}
+          {ratio && (
+            <div className="brew-card-ratio">
+              <div className="brew-card-ratio-bar">
+                <div className="brew-card-ratio-fill" style={{ width: `${ratioBarWidth}%` }} />
+              </div>
+              <div className="brew-card-ratio-label">
+                <span>{brew.groundCoffeeWeight}g coffee</span>
+                <span>1:{ratio}</span>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* Processing + variety */}
-        {(brew.processing || brew.variety) && (
-          <div className="brew-card-badges">
-            {brew.processing && processPalette && (
-              <span className="brew-card-badge" style={{ background: processPalette.bg, color: processPalette.color }}>{brew.processing}</span>
+        {/* Right: bean info */}
+        <div className="brew-card-right">
+          <span className="brew-card-section-label">Bean info</span>
+          <div className="brew-card-info-rows">
+            {brew.variety      && <div className="brew-card-info-row"><span>Variety</span><span>{brew.variety}</span></div>}
+            {brew.processing   && <div className="brew-card-info-row"><span>Process</span><span>{brew.processing}</span></div>}
+            {brew.grinder      && <div className="brew-card-info-row"><span>Grinder</span><span>{brew.grinder}</span></div>}
+            {brew.grindSetting && <div className="brew-card-info-row"><span>Grind</span><span>{brew.grindSetting}</span></div>}
+            {!brew.variety && !brew.processing && !brew.grinder && !brew.grindSetting && (
+              <div style={{ fontSize: '12px', color: '#BCAAA4', fontStyle: 'italic' }}>No bean info saved</div>
             )}
-            {brew.variety && <span className="brew-card-badge">{brew.variety}</span>}
           </div>
-        )}
-
-        {/* Flavor tags */}
-        {Array.isArray(brew.flavorTags) && brew.flavorTags.length > 0 && (
-          <div className="brew-card-flavors">
-            {brew.flavorTags.map((tag, i) => (
-              <span key={i} className="brew-card-flavor-tag" style={{ background: getFlavorStyle(tag) }}>
-                {getFlavorEmoji(tag)} {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Notes */}
-        {brew.notes && <div className="brew-card-notes">"{brew.notes}"</div>}
+        </div>
       </div>
+
+      {/* ── Flavor tags ── */}
+      {Array.isArray(brew.flavorTags) && brew.flavorTags.length > 0 && (
+        <div className="brew-card-flavors">
+          {brew.flavorTags.map((tag, i) => (
+            <span key={i} className="brew-card-flavor-tag" style={{ background: getFlavorStyle(tag) }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* ── Notes ── */}
+      {brew.notes && <div className="brew-card-notes">"{brew.notes}"</div>}
     </div>
   );
 };
@@ -217,14 +264,6 @@ const SortIcon = ({ active, direction }) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" width="10" height="10"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="15,15 18,18 21,15"/><line x1="18" y1="9" x2="18" y2="18"/></svg>
     )}
   </span>
-);
-
-const StatCard = ({ value, label, icon }) => (
-  <div style={s.statCard}>
-    <div style={s.statIcon}>{icon}</div>
-    <div style={s.statValue}>{value}</div>
-    <div style={s.statLabel}>{label}</div>
-  </div>
 );
 
 const BeanFilterBanner = ({ beanName, onClear }) => (
@@ -534,7 +573,7 @@ function RawData({ onNavigateToRegion, allRegionDocs = [], beanFilter = null, on
     return map;
   }, [allRegionDocs]);
 
-useEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) setCurrentUid(user.uid);
       else { setCurrentUid(null); setBrews([]); setLoading(false); }
@@ -604,20 +643,6 @@ useEffect(() => {
     onNavigateToRegion?.(regionDoc);
   };
 
-  const stats = useMemo(() => {
-    if (brews.length === 0) return null;
-    const methods = brews.map(b => b.method).filter(Boolean);
-    const methodFreq = methods.reduce((acc, m) => { acc[m] = (acc[m] || 0) + 1; return acc; }, {});
-    const topMethod = Object.entries(methodFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
-    const beans = [...new Set(brews.map(b => b.beans).filter(Boolean))];
-    const temps = brews.map(b => b.waterTemp).filter(v => v && v !== '?');
-    const avgTemp = temps.length ? Math.round(temps.reduce((a, b) => a + Number(b), 0) / temps.length) : null;
-    const allTags = brews.flatMap(b => Array.isArray(b.flavorTags) ? b.flavorTags : []);
-    const tagFreq = allTags.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
-    const topFlavor = Object.entries(tagFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-    return { total: brews.length, uniqueBeans: beans.length, topMethod, avgTemp, topFlavor };
-  }, [brews]);
-
   const allMethods = useMemo(() => {
     const set = new Set(brews.map(b => b.method).filter(Boolean));
     return ['All', ...Array.from(set).sort()];
@@ -676,46 +701,23 @@ useEffect(() => {
 
       {beanFilter && <BeanFilterBanner beanName={beanFilter} onClear={onClearBeanFilter} />}
 
-      {/* Stats row — horizontal scroll on mobile */}
-      {stats && (
-        <div className="rawdata-stats-row">
-          <StatCard value={stats.total}       label="Total Brews"    icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>} />
-          <StatCard value={stats.uniqueBeans} label="Unique Origins" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>} />
-          <StatCard value={stats.topMethod}   label="Fav. Method"    icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>} />
-          <StatCard value={stats.avgTemp ? `${stats.avgTemp}°C` : '—'} label="Avg. Temp" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>} />
-          {stats.topFlavor && (
-            <StatCard
-              value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: getFlavorStyle(stats.topFlavor), color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: '700' }}>{stats.topFlavor}</span>}
-              label="Top Flavor" icon={<svg viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M12 22C6.5 22 2 17.5 2 12 2 9.5 4 6 6 4c0 2 1 4 4 4 0-4 2.5-6 4-6 0 3 2 5 4 5 0-2 2-3 3-3-1 3 0 5 0 7 0 5.5-4.5 11-9 11z"/></svg>}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Toolbar — always visible */}
+      {/* Toolbar */}
       <div className="rawdata-toolbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Search */}
           <div style={{ ...s.searchWrap, flex: '1 1 200px' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#8D6E63" strokeWidth="1.75" strokeLinecap="round" width="14" height="14" style={{ position: 'absolute', left: '10px', top: '9px' }}><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input style={s.searchInput} placeholder="Search beans, variety, process…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-
-          {/* Favourites pill */}
           <button
             style={{ ...s.filterPill, display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', ...(showFavOnly ? { background: '#F59E0B', color: 'white', border: '1px solid #F59E0B' } : {}) }}
             onClick={() => setShowFavOnly(v => !v)}
           >
             <svg viewBox="0 0 24 24" fill={showFavOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg> Favourites
           </button>
-
-          {/* Column visibility — hidden on mobile via CSS */}
           <span className="rawdata-col-visibility">
             <ColumnVisibilityPanel visibleCols={visibleCols} onChange={setVisibleCols} />
           </span>
         </div>
-
-        {/* Method filter pills */}
         <div style={s.filterRow}>
           {allMethods.map(m => (
             <button key={m} style={{ ...s.filterPill, ...(methodFilter === m ? s.filterPillActive : {}) }} onClick={() => setMethodFilter(m)}>{m}</button>
@@ -723,7 +725,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* ── Mobile: Card list (shown via CSS at ≤1024px) ── */}
+      {/* ── Mobile: Card list ── */}
       <div className="brew-card-list">
         {filtered.length === 0 ? (
           <div style={{ padding: '40px 20px', textAlign: 'center', color: '#8D6E63', fontStyle: 'italic' }}>
@@ -744,75 +746,75 @@ useEffect(() => {
         )}
       </div>
 
-      {/* ── Desktop: Table (hidden via CSS at ≤1024px) ── */}
+      {/* ── Desktop: Table ── */}
       <div className="rawdata-table-wrap">
-          <table style={s.table}>
-            <thead>
-              <tr>
-                {COLUMNS.map(col => (
-                  <th key={col.key} style={{ ...s.th, width: col.width }} onClick={() => handleSort(col.key)}>
-                    {col.label} <SortIcon active={sortKey === col.key} direction={sortDir} />
-                  </th>
-                ))}
-                <th style={{ ...s.th, width: '80px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((brew, idx) => {
-                const hasRegion = !!brew.regionRef && !!regionById[brew.regionRef];
-                return (
-                  <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
-                    {COLUMNS.map(col => {
-                      switch (col.key) {
-                        case 'favorite':
-                          return (
-                            <td key="favorite" style={{ ...s.td, ...s.tdFav }}>
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none', display: 'flex' }} title={brew.favorite ? 'Unfavourite' : 'Favourite'} onClick={() => handleToggleFavorite(brew)}>
-                                <svg viewBox="0 0 24 24" fill={brew.favorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-                                </button>
-                            </td>
-                          );
-                        case 'date':
-                          return <td key="date" style={s.td}><span style={s.dateCell}>{formatDate(brew.date)}</span></td>;
-                        case 'beans':
-                          return (
-                            <td key="beans" style={{ ...s.td, ...s.tdBeans }}>
-                              <button onClick={() => handleBeanClick(brew)} title={hasRegion ? `View on map: ${regionById[brew.regionRef]?.name}` : 'No region linked'} style={s.beanBtn}>
-                                <span style={s.beanBtnText}>{fmt(brew.beans)}</span>
-                                <span style={{ ...s.beanBtnIcon, color: hasRegion ? '#5D4037' : '#D7CCC8', opacity: hasRegion ? 1 : 0.4 }}>↗</span>
-                              </button>
-                            </td>
-                          );
-                        case 'roastLevel':
-                          return <td key="roastLevel" style={s.td}><ColorBadge value={brew.roastLevel} colorMap={ROAST_COLORS} /></td>;
-                        case 'processing':
-                          return <td key="processing" style={s.td}><ColorBadge value={brew.processing} colorMap={PROCESS_COLORS} /></td>;
-                        case 'flavorTags':
-                          return <td key="flavorTags" style={{ ...s.td, ...s.tdTags }}><FlavorTagsCell tags={brew.flavorTags} /></td>;
-                        case 'notes':
-                          return <td key="notes" style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? `"${brew.notes}"` : <span style={s.dash}>—</span>}</td>;
-                        default:
-                          return <td key={col.key} style={s.td}>{fmt(brew[col.key])}</td>;
-                      }
-                    })}
-                    <td style={{ ...s.td, whiteSpace: 'nowrap' }}>
-                      <button style={s.editBtn} onClick={() => setBrewToEdit(brew)} title="Edit">✏️</button>
-                      {' '}
-                      <button style={s.deleteBtn} onClick={() => setBrewToDelete(brew)} title="Delete">🗑️</button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={COLUMNS.length + 1} style={{ ...s.td, textAlign: 'center', color: '#8D6E63', fontStyle: 'italic', padding: '40px' }}>
-                    {beanFilter ? <>No brews found for <strong>{beanFilter}</strong>.</> : 'No brews match your search.'}
+        <table style={s.table}>
+          <thead>
+            <tr>
+              {COLUMNS.map(col => (
+                <th key={col.key} style={{ ...s.th, width: col.width }} onClick={() => handleSort(col.key)}>
+                  {col.label} <SortIcon active={sortKey === col.key} direction={sortDir} />
+                </th>
+              ))}
+              <th style={{ ...s.th, width: '80px' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((brew, idx) => {
+              const hasRegion = !!brew.regionRef && !!regionById[brew.regionRef];
+              return (
+                <tr key={brew.id || idx} style={{ ...s.tr, ...(idx % 2 === 0 ? s.trEven : {}) }}>
+                  {COLUMNS.map(col => {
+                    switch (col.key) {
+                      case 'favorite':
+                        return (
+                          <td key="favorite" style={{ ...s.td, ...s.tdFav }}>
+                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: brew.favorite ? '#F59E0B' : '#D7CCC8', transition: 'color 0.15s, transform 0.15s', transform: brew.favorite ? 'scale(1.15)' : 'scale(1)', filter: brew.favorite ? 'drop-shadow(0 1px 3px rgba(245,158,11,0.5))' : 'none', display: 'flex' }} title={brew.favorite ? 'Unfavourite' : 'Favourite'} onClick={() => handleToggleFavorite(brew)}>
+                              <svg viewBox="0 0 24 24" fill={brew.favorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+                            </button>
+                          </td>
+                        );
+                      case 'date':
+                        return <td key="date" style={s.td}><span style={s.dateCell}>{formatDate(brew.date)}</span></td>;
+                      case 'beans':
+                        return (
+                          <td key="beans" style={{ ...s.td, ...s.tdBeans }}>
+                            <button onClick={() => handleBeanClick(brew)} title={hasRegion ? `View on map: ${regionById[brew.regionRef]?.name}` : 'No region linked'} style={s.beanBtn}>
+                              <span style={s.beanBtnText}>{fmt(brew.beans)}</span>
+                              <span style={{ ...s.beanBtnIcon, color: hasRegion ? '#5D4037' : '#D7CCC8', opacity: hasRegion ? 1 : 0.4 }}>↗</span>
+                            </button>
+                          </td>
+                        );
+                      case 'roastLevel':
+                        return <td key="roastLevel" style={s.td}><ColorBadge value={brew.roastLevel} colorMap={ROAST_COLORS} /></td>;
+                      case 'processing':
+                        return <td key="processing" style={s.td}><ColorBadge value={brew.processing} colorMap={PROCESS_COLORS} /></td>;
+                      case 'flavorTags':
+                        return <td key="flavorTags" style={{ ...s.td, ...s.tdTags }}><FlavorTagsCell tags={brew.flavorTags} /></td>;
+                      case 'notes':
+                        return <td key="notes" style={{ ...s.td, ...s.tdNotes }}>{brew.notes ? `"${brew.notes}"` : <span style={s.dash}>—</span>}</td>;
+                      default:
+                        return <td key={col.key} style={s.td}>{fmt(brew[col.key])}</td>;
+                    }
+                  })}
+                  <td style={{ ...s.td, whiteSpace: 'nowrap' }}>
+                    <button style={s.editBtn} onClick={() => setBrewToEdit(brew)} title="Edit">✏️</button>
+                    {' '}
+                    <button style={s.deleteBtn} onClick={() => setBrewToDelete(brew)} title="Delete">🗑️</button>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={COLUMNS.length + 1} style={{ ...s.td, textAlign: 'center', color: '#8D6E63', fontStyle: 'italic', padding: '40px' }}>
+                  {beanFilter ? <>No brews found for <strong>{beanFilter}</strong>.</> : 'No brews match your search.'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -832,22 +834,12 @@ const s = {
   filterBannerText:  { fontSize: '13px', color: '#5D4037' },
   filterBannerClear: { display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'none', border: '1px solid #A1887F', borderRadius: '20px', fontSize: '12px', color: '#5D4037', cursor: 'pointer', fontWeight: '600' },
 
-  statsRow:    { display: 'flex', background: '#D7CCC8', gap: '1px', flexShrink: 0 }, // fallback, layout via .rawdata-stats-row
-  statCard:    { flex: '1 0 80px', background: '#FFFDF9', padding: '14px', textAlign: 'center' },
-  statIcon:    { fontSize: '16px', marginBottom: '4px' },
-  statValue:   { fontSize: '18px', fontWeight: '800' },
-  statLabel:   { fontSize: '9px', fontWeight: '700', color: '#8D6E63', textTransform: 'uppercase' },
-
-  toolbar:     { padding: '12px 24px', background: '#FFFDF9', borderBottom: '1px solid #EFEBE9', display: 'flex', flexDirection: 'column', gap: '10px', flexShrink: 0 }, // layout via .rawdata-toolbar
   searchWrap:  { position: 'relative', flex: 1 },
   searchInput: { width: '100%', padding: '8px 12px 8px 30px', border: '1px solid #D7CCC8', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' },
-  searchIcon:  { position: 'absolute', left: '10px', top: '8px', fontSize: '12px' },
   filterRow:   { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   filterPill:  { padding: '4px 12px', borderRadius: '20px', border: '1px solid #D7CCC8', fontSize: '11px', cursor: 'pointer', background: 'none' },
   filterPillActive: { background: '#2C1810', color: '#F5E6D3', border: '1px solid #2C1810' },
 
-  // Desktop table
-  tableWrap:   { flex: 1, overflow: 'auto' },
   table:       { width: '100%', borderCollapse: 'collapse', minWidth: '600px', tableLayout: 'fixed' },
   th:          { position: 'sticky', top: 0, background: '#EFEBE9', padding: '10px 16px', fontSize: '10px', textAlign: 'left', zIndex: 1, cursor: 'pointer', userSelect: 'none' },
   tr:          { borderBottom: '1px solid #F3EDEA' },
@@ -864,7 +856,6 @@ const s = {
   beanBtnText: { fontSize: '13px', fontWeight: '600', color: '#2C1810', textDecoration: 'underline', textDecorationStyle: 'dotted', textDecorationColor: '#A1887F', textUnderlineOffset: '3px' },
   beanBtnIcon: { fontSize: '11px', flexShrink: 0 },
 
-  // Modals
   noRegionModal:    { background: 'white', borderRadius: '12px', width: '400px', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden' },
   noRegionHeader:   { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)' },
   noRegionCloseBtn: { background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '13px', color: '#F5E6D3' },
@@ -882,7 +873,7 @@ const s = {
   saveBtn:     { padding: '9px 20px', background: 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '13px' },
   cancelBtn:   { padding: '9px 20px', background: 'none', border: '1px solid #D7CCC8', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#8D6E63' },
   deleteModal:        { background: 'white', padding: '24px', borderRadius: '12px', textAlign: 'center', maxWidth: '300px' },
-  deleteModalIcon:    { fontSize: '32px', marginBottom: '12px' },
+  deleteModalIcon:    { marginBottom: '12px' },
   deleteModalTitle:   { fontSize: '16px', fontWeight: '700', marginBottom: '8px' },
   deleteModalSub:     { fontSize: '13px', color: '#5D4037', marginBottom: '8px' },
   deleteModalNote:    { fontSize: '11px', color: '#B71C1C', marginBottom: '20px' },
