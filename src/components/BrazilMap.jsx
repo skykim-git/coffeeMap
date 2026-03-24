@@ -14,7 +14,7 @@ import SavedBeansTab from './brew/SavedBeansTab';
 import { buildRegionTree, parseCoord } from './shared/utils';
 import { levelIcon } from './map/mapIcons';
 import { MapEventHandler, ZoomControls, BoundaryFitter, PopupCloser } from './map/MapControls';
-import BrewStatsPopup from './map/BrewStatsPopup';
+import { extractFlavorNotes, FLAVOR_PALETTE } from './shared/utils';
 import AddBrewModal from './brew/AddBrewModal';
 import { Sidebar, TopBar, BottomTabBar, LoadingScreen, ErrorScreen } from './shared/Sidebar';
 
@@ -155,7 +155,12 @@ export default function BrazilMap() {
 
   const visibleDocs = mapDocs.filter(d => {
     if (!brewedDocIds.has(d.id)) return false;
-    if (pinnedDoc && d.id === pinnedDoc.id) return true;
+
+    // A leaf is a brewed doc with no brewed children — always keep it visible
+    // so its popup remains accessible after being clicked.
+    const isLeaf = !allRegionDocs.some(child => child.parentId === d.id && brewedDocIds.has(child.id));
+    if (isLeaf && pinnedDoc && d.id === pinnedDoc.id) return true;
+
     if (!visibleLevels().includes(d.level)) return false;
     if (selectedDoc) {
       return d.parentId === selectedDoc.id;
@@ -267,8 +272,33 @@ export default function BrazilMap() {
                       </div>
                     </Tooltip>
                     {isPinned && (
-                      <Popup maxWidth={380} autoPan={false}>
-                        <BrewStatsPopup regionDoc={doc} parentDoc={parentDoc} brewRecords={brewRecords} />
+                      <Popup maxWidth={320} autoPan={false}>
+                        <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', padding: '4px 2px 6px' }}>
+                          <div style={{ fontSize: '16px', fontWeight: '700', color: '#2C1810', marginBottom: '2px' }}>{doc.name}</div>
+                          {doc.nameLocal && (
+                            <div style={{ fontSize: '12px', color: '#A1887F', marginBottom: '10px' }}>{doc.nameLocal}</div>
+                          )}
+                          {(() => {
+                            const flavors = extractFlavorNotes(doc.id, brewRecords);
+                            if (!flavors.length) return null;
+                            return (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {flavors.map((note, i) => (
+                                  <span key={i} style={{
+                                    background: FLAVOR_PALETTE[note.toLowerCase()] || 'linear-gradient(135deg, #5D4037 0%, #2C1810 100%)',
+                                    color: 'white',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                  }}>
+                                    {note}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </Popup>
                     )}
                   </Marker>
